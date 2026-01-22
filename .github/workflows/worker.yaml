@@ -9,5 +9,5 @@ jobs:
     steps:
       - name: Run worker
         run: |
-          cd /root/bestofrs
+          cd /home/zyzj/bestofrs
           docker compose -f compose-worker.yaml run --rm worker
