@@ -1,0 +1,29 @@
+@theme inline {
+  --color-primary: var(--primary-color);
+  --color-primary-1: var(--primary-color-1);
+  --color-primary-2: var(--primary-color-2);
+  --color-primary-3: var(--primary-color-3);
+  --color-primary-4: var(--primary-color-4);
+  --color-primary-5: var(--primary-color-5);
+  --color-primary-6: var(--primary-color-6);
+  --color-primary-7: var(--primary-color-7);
+
+  --color-secondary: var(--secondary-color);
+  --color-secondary-1: var(--secondary-color-1);
+  --color-secondary-2: var(--secondary-color-2);
+  --color-secondary-3: var(--secondary-color-3);
+  --color-secondary-4: var(--secondary-color-4);
+  --color-secondary-5: var(--secondary-color-5);
+  --color-secondary-6: var(--secondary-color-6);
+
+  --color-focused-border: var(--focused-border-color);
+  --color-primary-success: var(--primary-success-color);
+  --color-secondary-success: var(--secondary-success-color);
+  --color-primary-warning: var(--primary-warning-color);
+  --color-secondary-warning: var(--secondary-warning-color);
+  --color-primary-error: var(--primary-error-color);
+  --color-secondary-error: var(--secondary-error-color);
+  --color-contrast-error: var(--contrast-error-color);
+  --color-primary-info: var(--primary-info-color);
+  --color-secondary-info: var(--secondary-info-color);
+}

@@ -1,4 +1,5 @@
 mod routes;
+mod theme;
 mod views;
 
 use dioxus::prelude::*;
