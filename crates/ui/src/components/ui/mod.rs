@@ -1,4 +1,5 @@
 pub mod button;
-pub mod toast;
-pub mod skeleton;
 pub mod input;
+pub mod skeleton;
+pub mod toast;
+pub mod avatar;

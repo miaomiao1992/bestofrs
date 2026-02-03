@@ -1,20 +1,19 @@
 use dioxus::prelude::*;
 
-use crate::IO::api_error::api_error;
-use crate::IO::extractors::AppStateExt;
+use crate::impls::error::api_error;
+use crate::impls::state::State;
+
+#[cfg(feature = "server")]
+use crate::impls::auth::AdminAuth;
 
 use app::prelude::IngestDailySnapshotsResult;
 
-#[post("/api/admin/ingest_daily_snapshots/run_once", state: AppStateExt)]
+#[post(
+    "/api/admin/ingest_daily_snapshots/run_once",
+    state: State,
+    _auth: AdminAuth
+)]
 pub async fn run_ingest_daily_snapshots() -> ServerFnResult<IngestDailySnapshotsResult> {
-    if std::env::var("APP_ENV").ok().as_deref() == Some("production") {
-        return Err(ServerFnError::ServerError {
-            message: "forbidden".to_string(),
-            code: 403,
-            details: None,
-        });
-    }
-
     let app_state = state.0;
 
     let res = app_state

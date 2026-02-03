@@ -1,6 +1,6 @@
+use super::tags::TagDto;
 use domain::{Repo, RepoWithTags};
 use serde::{Deserialize, Serialize};
-use super::tags::TagDto;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RepoDto {

@@ -1,9 +1,9 @@
 use crate::components::IOCell;
 use dioxus::prelude::*;
 
+use crate::types::projects::ProjectImportItem;
 use crate::IO::admin::run_ingest_daily_snapshots;
 use crate::IO::projects::{import_projects, import_projects_json, list_projects, remove_project};
-use crate::types::projects::ProjectImportItem;
 use app::prelude::{IngestDailySnapshotsResult, Pagination};
 
 #[component]
@@ -37,7 +37,6 @@ fn ProjectManagement() -> Element {
     let mut refresh = use_signal(|| 0u32);
 
     let projects = use_server_future(move || {
-        // depend on refresh so we can reload after import
         let _ = refresh();
         list_projects(Pagination {
             limit: Some(500),

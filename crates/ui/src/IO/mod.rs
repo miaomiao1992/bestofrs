@@ -1,6 +1,5 @@
 pub mod admin;
-pub mod api_error;
-pub mod extractors;
-pub mod health_check;
+pub mod auth;
+pub mod health;
 pub mod projects;
 pub mod repos;

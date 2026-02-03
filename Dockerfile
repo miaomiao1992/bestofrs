@@ -21,5 +21,4 @@ FROM debian:bookworm-slim AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/dx/ui/release/web/ui ./ui
 COPY --from=builder /app/target/dx/ui/release/web/public ./public
-RUN mkdir -p crates/infra/src/config/toml data
 ENTRYPOINT ["./ui"]

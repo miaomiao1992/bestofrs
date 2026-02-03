@@ -7,4 +7,7 @@ pub use io_cell::IOCell;
 mod ui;
 pub use ui::*;
 
+mod layout;
+pub use layout::*;
+
 pub mod icons;

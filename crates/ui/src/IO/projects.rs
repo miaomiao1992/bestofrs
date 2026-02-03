@@ -1,14 +1,14 @@
 use crate::types::projects::{ImportProjectsResult, ProjectDto, ProjectImportItem};
 use dioxus::prelude::*;
 
-use crate::IO::api_error::api_error;
-use crate::IO::extractors::AppStateExt;
+use crate::impls::error::api_error;
+use crate::impls::state::State;
 
 use app::prelude::{Page, Pagination};
 use app::project::{ImportProjectCommand, ImportProjectsCommand, RemoveProjectCommand};
 use serde::Deserialize;
 
-#[post("/api/projects", state: AppStateExt)]
+#[post("/api/projects", state: State)]
 pub async fn list_projects(page: Pagination) -> ServerFnResult<Page<ProjectDto>> {
     let app_state = state.0;
     let projects_page = app_state
@@ -17,10 +17,11 @@ pub async fn list_projects(page: Pagination) -> ServerFnResult<Page<ProjectDto>>
         .list(page)
         .await
         .map_err(api_error)?;
+
     Ok(projects_page.map(ProjectDto::from))
 }
 
-#[post("/api/projects/import", state: AppStateExt)]
+#[post("/api/projects/import", state: State)]
 pub async fn import_projects(
     items: Vec<ProjectImportItem>,
 ) -> ServerFnResult<ImportProjectsResult> {
@@ -68,7 +69,7 @@ struct ProjectSeedItem {
     full_name: String,
 }
 
-#[post("/api/projects/import_json", state: AppStateExt)]
+#[post("/api/projects/import_json", state: State)]
 pub async fn import_projects_json(json_text: String) -> ServerFnResult<ImportProjectsResult> {
     let app_state = state.0;
 
@@ -115,7 +116,7 @@ pub async fn import_projects_json(json_text: String) -> ServerFnResult<ImportPro
     })
 }
 
-#[post("/api/projects/remove", state: AppStateExt)]
+#[post("/api/projects/remove", state: State)]
 pub async fn remove_project(repo_id: String) -> ServerFnResult<()> {
     let app_state = state.0;
 

@@ -5,7 +5,7 @@ pub struct HealthCheckDto {
     pub ok: bool,
 }
 
-#[get("/api/health_check")]
+#[get("/api/health")]
 pub async fn health_check() -> ServerFnResult<HealthCheckDto> {
     Ok(HealthCheckDto { ok: true })
 }

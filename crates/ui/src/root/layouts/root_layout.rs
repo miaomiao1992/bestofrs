@@ -1,13 +1,29 @@
 use crate::{
-    components::{icons, toast::ToastProvider},
+    components::{icons, toast::ToastProvider, UserProfile},
     root::routes::Route,
     root::theme::{is_dark_mode, theme_seed, toggle_theme},
+    IO::auth::me,
 };
 use dioxus::prelude::*;
+use crate::types::auth::MeDto;
+
+#[derive(Clone, PartialEq)]
+pub enum UserState {
+    Loading,
+    Guest,
+    User(MeDto),
+    Error(String),
+}
+
+pub type UserContext = Signal<UserState>;
 
 #[component]
-pub fn Layout() -> Element {
+pub fn RootLayout() -> Element {
     let mut is_dark = use_signal(|| false);
+    let mut user_state: UserContext = use_signal(|| UserState::Loading);
+    use_context_provider(|| user_state);
+    let me_fut = use_server_future(move || me())?;
+
     use_effect(move || {
         theme_seed();
         let mut is_dark = is_dark;
@@ -15,6 +31,18 @@ pub fn Layout() -> Element {
             let value = is_dark_mode().await;
             is_dark.set(value);
         });
+    });
+
+    use_effect(move || {
+        if !matches!(user_state(), UserState::Loading) {
+            return;
+        }
+        match me_fut() {
+            Some(Ok(Some(me))) => user_state.set(UserState::User(me)),
+            Some(Ok(None)) => user_state.set(UserState::Guest),
+            Some(Err(err)) => user_state.set(UserState::Error(err.to_string())),
+            None => {}
+        }
     });
 
     rsx! {
@@ -44,6 +72,7 @@ pub fn Layout() -> Element {
                                 icons::SunIcon { size: 18 }
                             }
                         }
+                        UserProfile {}
                     }
                 }
             }
