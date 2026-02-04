@@ -10,7 +10,10 @@ pub struct ConfigRolePolicy {
 
 impl ConfigRolePolicy {
     pub fn new(admin_github_ids: Vec<i64>) -> Self {
-        let admin_ids = admin_github_ids.into_iter().map(|id| id.to_string()).collect();
+        let admin_ids = admin_github_ids
+            .into_iter()
+            .map(|id| id.to_string())
+            .collect();
         Self { admin_ids }
     }
 }

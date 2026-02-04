@@ -1,7 +1,7 @@
 use app::app_error::AppResult;
-use async_trait::async_trait;
 use app::common::pagination::{Page, Pagination};
 use app::repo::RepoTagRepo;
+use async_trait::async_trait;
 use domain::{RepoId, Tag, TagLabel, TagValue};
 use sqlx::{QueryBuilder, Sqlite};
 

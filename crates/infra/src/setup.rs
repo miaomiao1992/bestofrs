@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use adapters::persistence;
 use app::app_error::{AppError, AppResult};
+use app::auth::{OAuth2AuthorizationCodePkcePort, OAuth2ResourceOwnerPort};
 use app::prelude::{
     AuthCommandHandler, IngestDailySnapshots, ProjectCommandHandler, ProjectQueryHandler,
     RepoCommandHandler, RepoQueryHandler, SnapshotCommandHandler, SnapshotEventHandler,
     SnapshotQueryHandler,
 };
-use app::auth::{OAuth2AuthorizationCodePkcePort, OAuth2ResourceOwnerPort};
 
 use crate::config::Config as AppConfig;
 use adapters::auth::{ConfigRolePolicy, GithubOAuthAdapter};
