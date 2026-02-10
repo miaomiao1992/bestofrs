@@ -1,4 +1,7 @@
 use dioxus::prelude::*;
+use dioxus_use_js::use_js;
+
+use_js!("src/js/dom_bridge.js"::redirect_to);
 
 #[component]
 pub fn Login() -> Element {
@@ -9,7 +12,9 @@ pub fn Login() -> Element {
             return;
         }
         started.set(true);
-        _ = document::eval("window.location.assign('/api/auth/login/github');");
+        spawn(async move {
+            let _ = redirect_to::<()>("/api/auth/login/github").await;
+        });
     });
 
     rsx! {

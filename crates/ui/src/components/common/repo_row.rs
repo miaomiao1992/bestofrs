@@ -23,9 +23,9 @@ pub fn RepoRow(repo: RepoDto) -> Element {
     };
 
     let route = if owner.is_empty() {
-        Route::Home {}
+        Route::HomeView {}
     } else {
-        Route::RepoDetail {
+        Route::RepoDetailView {
             owner: owner.to_string(),
             name: name.to_string(),
         }

@@ -1,6 +1,9 @@
 use crate::types::auth::MeDto;
 use crate::{
-    components::{icons, skeleton::Skeleton, toast::ToastProvider, FuzzySearch, UserProfile},
+    components::{
+        icons, skeleton::Skeleton, toast::ToastProvider, Footer, FuzzySearch, HeaderNav,
+        ScrollProgress, UserProfile,
+    },
     root::theme::{is_dark_mode, theme_seed, toggle_theme},
     root::Route,
     IO::auth::me,
@@ -16,23 +19,6 @@ pub enum UserState {
 }
 
 pub type UserContext = Signal<UserState>;
-
-#[component]
-fn HeaderNav() -> Element {
-    let user_state = use_context::<UserContext>();
-    let show_admin = matches!(user_state(), UserState::User(me) if me.role == "Admin");
-
-    rsx! {
-        nav { class: "flex items-center gap-4 text-sm",
-            Link { class: "text-secondary-5 hover:text-secondary-4 hover:underline", to: Route::Home {}, "Home" }
-            Link { class: "text-secondary-5 hover:text-secondary-4 hover:underline", to: Route::RepoList {}, "Repo" }
-            Link { class: "text-secondary-5 hover:text-secondary-4 hover:underline", to: Route::TagList {}, "Tag" }
-            if show_admin {
-                Link { class: "text-secondary-5 hover:text-secondary-4 hover:underline", to: Route::Admin {}, "Admin" }
-            }
-        }
-    }
-}
 
 #[component]
 pub fn RootLayout() -> Element {
@@ -64,45 +50,52 @@ pub fn RootLayout() -> Element {
 
     rsx! {
         ToastProvider {
-            header {
-                class: "border-b border-primary-6 bg-primary-2",
-                div { class: "mx-auto max-w-6xl px-4 py-3 flex items-center justify-between",
-                    div { class: "flex items-center gap-6",
-                        Link { class: "font-semibold tracking-tight text-secondary-4", to: Route::Home {}, "bestofrs" }
-                        HeaderNav {}
-                    }
-                    div { class: "flex items-center gap-3",
-                        FuzzySearch {}
-                        button {
-                            class: "inline-flex items-center justify-center rounded-md border border-primary-6 bg-primary-1 p-2 text-secondary-5 hover:bg-primary-3 hover:text-secondary-4",
-                            onclick: move |_| {
-                                toggle_theme();
-                                is_dark.set(!is_dark());
-                            },
-                            aria_label: "Toggle theme",
-                            if is_dark() {
-                                icons::MoonIcon { size: 18 }
-                            } else {
-                                icons::SunIcon { size: 18 }
+            div { class: "min-h-screen bg-primary-1 text-secondary-5 flex flex-col",
+                header {
+                    class: "fixed inset-x-0 top-0 z-50 border-b border-primary-6 bg-primary-2/85 shadow-sm",
+                    div { class: "relative",
+                        ScrollProgress {}
+                        div { class: "mx-auto flex max-w-6xl items-center justify-between px-4 py-3",
+                            div { class: "flex items-center gap-6",
+                                Link { class: "font-semibold tracking-tight text-secondary-4", to: Route::HomeView {}, "bestofrs" }
+                                HeaderNav {}
+                            }
+                            div { class: "flex items-center gap-3",
+                                FuzzySearch {}
+                                button {
+                                    class: "inline-flex items-center justify-center rounded-md border border-primary-6 bg-primary-1 p-2 text-secondary-5 transition-colors hover:bg-primary-3 hover:text-secondary-4",
+                                    onclick: move |_| {
+                                        toggle_theme();
+                                        is_dark.set(!is_dark());
+                                    },
+                                    aria_label: "Toggle theme",
+                                    if is_dark() {
+                                        icons::MoonIcon { size: 18 }
+                                    } else {
+                                        icons::SunIcon { size: 18 }
+                                    }
+                                }
+                                UserProfile {}
                             }
                         }
-                        UserProfile {}
                     }
                 }
-            }
 
-            main {
-                class: "min-h-screen bg-primary-1",
-                SuspenseBoundary {
-                    fallback: move |_: SuspenseContext| {
-                        rsx! {
-                            div { class: "mx-auto max-w-6xl px-4 py-6",
-                                Skeleton { class: "w-full h-[420px] rounded-xl border border-primary-6 bg-primary-2" }
+                main {
+                    class: "mx-auto w-full max-w-6xl flex-1 px-4 pb-10 pt-24",
+                    SuspenseBoundary {
+                        fallback: move |_: SuspenseContext| {
+                            rsx! {
+                                div { class: "py-6",
+                                    Skeleton { class: "h-[420px] w-full rounded-xl border border-primary-6 bg-primary-2" }
+                                }
                             }
-                        }
-                    },
-                    Outlet::<Route> {}
+                        },
+                        Outlet::<Route> {}
+                    }
                 }
+
+                Footer {}
             }
         }
     }

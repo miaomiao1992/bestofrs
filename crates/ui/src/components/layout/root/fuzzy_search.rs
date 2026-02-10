@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_sdk_time::use_debounce;
+use dioxus_use_js::use_js;
 
 use crate::components::ui::dialog::{DialogContent, DialogRoot};
 use crate::components::ui::input::Input;
@@ -7,6 +8,8 @@ use crate::root::Route;
 use crate::types::search::{SearchRepoDto, SearchResultDto};
 use crate::IO::repos::search_repos;
 use app::prelude::Pagination;
+
+use_js!("src/js/dom_bridge.js"::focus_element_by_id);
 
 fn empty_result(page: Pagination) -> SearchResultDto {
     SearchResultDto {
@@ -17,11 +20,11 @@ fn empty_result(page: Pagination) -> SearchResultDto {
 
 fn repo_route(repo: &SearchRepoDto) -> Route {
     match repo.id.split_once('/') {
-        Some((owner, name)) => Route::RepoDetail {
+        Some((owner, name)) => Route::RepoDetailView {
             owner: owner.to_string(),
             name: name.to_string(),
         },
-        None => Route::Home {},
+        None => Route::HomeView {},
     }
 }
 
@@ -30,6 +33,7 @@ pub fn FuzzySearch() -> Element {
     let mut open = use_signal(|| false);
     let mut draft = use_signal(String::new);
     let navigator = use_navigator();
+    let search_input_id = "fuzzy-search-input";
     let mut close_dialog = move || {
         open.set(false);
         draft.set(String::new());
@@ -42,7 +46,7 @@ pub fn FuzzySearch() -> Element {
     let mut go_tag = move |_label: String, _value: String| {
         close_dialog();
         // TODO: decide tag route target
-        navigator.push(Route::TagList {});
+        navigator.push(Route::TagListView {});
     };
     let page = Pagination {
         limit: Some(20),
@@ -70,12 +74,12 @@ pub fn FuzzySearch() -> Element {
         if open() {
             return;
         }
-
-        // Avoid restoring focus to the trigger input after close.
-        _ = document::eval(
-            "if (document.activeElement && typeof document.activeElement.blur === 'function') { document.activeElement.blur(); }",
-        );
         open.set(true);
+
+        let search_input_id = search_input_id.to_string();
+        spawn(async move {
+            let _ = focus_element_by_id::<()>(search_input_id).await;
+        });
     };
 
     let mut on_draft_change = move |value: String| {
@@ -84,19 +88,27 @@ pub fn FuzzySearch() -> Element {
     };
 
     rsx! {
-        Input {
-            class: "input w-full",
-            onfocus: move |_| open_dialog(),
+        div {
+            class: "w-full",
+            role: "button",
+            tabindex: "0",
+            onpointerdown: move |e: PointerEvent| {
+                e.prevent_default();
+            },
+            onclick: move |_| open_dialog(),
             onkeydown: move |e: KeyboardEvent| {
                 if e.key() == Key::Enter || e.key().to_string() == " " {
                     open_dialog();
                 }
             },
-            readonly: true,
-            value: "",
-            placeholder: "Search repos / tags",
-            aria_label: "Open search dialog",
-            children: rsx! {},
+            Input {
+                class: "input w-full",
+                readonly: true,
+                value: "",
+                placeholder: "Search repos / tags",
+                aria_label: "Open search dialog",
+                children: rsx! {},
+            }
         }
 
         DialogRoot { id: None, open: open(), on_open_change: move |v| {
@@ -107,6 +119,7 @@ pub fn FuzzySearch() -> Element {
             },
             DialogContent { style: "top: 15%; transform: translate(-50%, 0); max-height: 80vh;",
                 Input {
+                    id: search_input_id,
                     class: "input w-full",
                     oninput: move |e: FormEvent| on_draft_change(e.value()),
                     onkeydown: move |e: KeyboardEvent| {

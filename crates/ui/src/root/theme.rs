@@ -1,142 +1,37 @@
 use dioxus::prelude::*;
+use dioxus_use_js::use_js;
 
 const COOKIE_NAME: &str = "bestofrs_theme";
 const CHANNEL_NAME: &str = "bestofrs-theme";
+const SEEDED_KEY: &str = "__bestofrs_theme_seeded";
+const CHANNEL_KEY: &str = "__bestofrs_theme_channel";
+
+use_js!("src/js/theme_bridge.js"::{
+    js_seed_theme,
+    js_is_dark_mode,
+    js_set_theme,
+    js_toggle_theme
+});
 
 pub fn theme_seed() {
-    _ = document::eval(&format!(
-        r#"
-        (function () {{
-          if (window.__bestofrs_theme_seeded) return;
-          window.__bestofrs_theme_seeded = true;
-
-          const COOKIE_NAME = '{cookie_name}';
-          const CHANNEL_NAME = '{channel_name}';
-
-          function getCookie(name) {{
-            const prefix = name + '=';
-            const parts = document.cookie.split(';');
-            for (let p of parts) {{
-              p = p.trim();
-              if (p.startsWith(prefix)) return decodeURIComponent(p.slice(prefix.length));
-            }}
-            return null;
-          }}
-
-          function apply(theme) {{
-            if (theme === 'dark' || theme === 'light') {{
-              document.documentElement.setAttribute('data-theme', theme);
-            }} else {{
-              document.documentElement.removeAttribute('data-theme');
-            }}
-          }}
-
-          apply(getCookie(COOKIE_NAME));
-
-          try {{
-            const ch = new BroadcastChannel(CHANNEL_NAME);
-            ch.addEventListener('message', (event) => {{
-              const data = event.data;
-              apply(data && data.theme);
-            }});
-            window.__bestofrs_theme_channel = ch;
-          }} catch (_) {{}}
-        }})();
-        "#,
-        cookie_name = COOKIE_NAME,
-        channel_name = CHANNEL_NAME
-    ));
+    spawn(async move {
+        let _ = js_seed_theme::<()>(COOKIE_NAME, CHANNEL_NAME, SEEDED_KEY, CHANNEL_KEY).await;
+    });
 }
 
 pub async fn is_dark_mode() -> bool {
-    let script = r#"
-        const theme = document.documentElement.getAttribute('data-theme');
-        if (theme === 'dark') return true;
-        if (theme === 'light') return false;
-        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    "#;
-    document::eval(script).join::<bool>().await.unwrap_or(false)
+    js_is_dark_mode::<bool>().await.unwrap_or(false)
 }
 
 pub fn set_theme(dark_mode: bool) {
     let theme = if dark_mode { "dark" } else { "light" };
-
-    _ = document::eval(&format!(
-        r#"
-        (function () {{
-          const COOKIE_NAME = '{cookie_name}';
-          const CHANNEL_NAME = '{channel_name}';
-
-          function getCookie(name) {{
-            const prefix = name + '=';
-            const parts = document.cookie.split(';');
-            for (let p of parts) {{
-              p = p.trim();
-              if (p.startsWith(prefix)) return decodeURIComponent(p.slice(prefix.length));
-            }}
-            return null;
-          }}
-
-          document.documentElement.setAttribute('data-theme', '{theme}');
-          if (getCookie(COOKIE_NAME) === '{theme}') return;
-
-          document.cookie = '{cookie_name}={theme}; path=/; max-age=31536000; samesite=lax';
-
-          try {{
-            const ch = window.__bestofrs_theme_channel;
-            if (ch && typeof ch.postMessage === 'function') {{
-              ch.postMessage({{ theme: '{theme}' }});
-            }} else {{
-              const tmp = new BroadcastChannel(CHANNEL_NAME);
-              tmp.postMessage({{ theme: '{theme}' }});
-              tmp.close();
-            }}
-          }} catch (_) {{}}
-        }})();
-        "#,
-        cookie_name = COOKIE_NAME,
-        channel_name = CHANNEL_NAME
-    ));
+    spawn(async move {
+        let _ = js_set_theme::<()>(COOKIE_NAME, CHANNEL_NAME, CHANNEL_KEY, theme).await;
+    });
 }
 
 pub fn toggle_theme() {
-    _ = document::eval(&format!(
-        r#"
-        (function () {{
-          const COOKIE_NAME = '{cookie_name}';
-          const CHANNEL_NAME = '{channel_name}';
-
-          function getCookie(name) {{
-            const prefix = name + '=';
-            const parts = document.cookie.split(';');
-            for (let p of parts) {{
-              p = p.trim();
-              if (p.startsWith(prefix)) return decodeURIComponent(p.slice(prefix.length));
-            }}
-            return null;
-          }}
-
-          const current = document.documentElement.getAttribute('data-theme');
-          const next = current === 'dark' ? 'light' : 'dark';
-
-          document.documentElement.setAttribute('data-theme', next);
-          if (getCookie(COOKIE_NAME) !== next) {{
-            document.cookie = '{cookie_name}=' + next + '; path=/; max-age=31536000; samesite=lax';
-          }}
-
-          try {{
-            const ch = window.__bestofrs_theme_channel;
-            if (ch && typeof ch.postMessage === 'function') {{
-              ch.postMessage({{ theme: next }});
-            }} else {{
-              const tmp = new BroadcastChannel(CHANNEL_NAME);
-              tmp.postMessage({{ theme: next }});
-              tmp.close();
-            }}
-          }} catch (_) {{}}
-        }})();
-        "#,
-        cookie_name = COOKIE_NAME,
-        channel_name = CHANNEL_NAME
-    ));
+    spawn(async move {
+        let _ = js_toggle_theme::<()>(COOKIE_NAME, CHANNEL_NAME, CHANNEL_KEY).await;
+    });
 }

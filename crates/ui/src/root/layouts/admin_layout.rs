@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 
+use crate::components::AdminStateHint;
 use crate::root::layouts::{UserContext, UserState};
 use crate::root::Route;
 
@@ -23,7 +24,7 @@ pub fn AdminLayout() -> Element {
 
         if unauthorized {
             redirected.set(true);
-            navigator.replace(Route::Home {});
+            navigator.replace(Route::HomeView {});
         }
     });
 
@@ -31,13 +32,9 @@ pub fn AdminLayout() -> Element {
         if is_admin {
             Outlet::<Route> {}
         } else if matches!(user_state(), UserState::Loading) {
-            div { class: "mx-auto max-w-6xl px-4 py-6 text-sm text-secondary-5",
-                "Loading..."
-            }
+            AdminStateHint { message: "Loading...".to_string() }
         } else {
-            div { class: "mx-auto max-w-6xl px-4 py-6 text-sm text-secondary-5",
-                "Redirecting..."
-            }
+            AdminStateHint { message: "Redirecting...".to_string() }
         }
     }
 }

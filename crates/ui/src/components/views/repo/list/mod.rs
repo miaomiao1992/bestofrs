@@ -10,17 +10,7 @@ use crate::components::select::{
 use crate::IO::repos::list_repos;
 
 #[component]
-pub fn Home() -> Element {
-    rsx! { RepoListContent { title: "Home".to_string(), subtitle: "Repo list".to_string() } }
-}
-
-#[component]
-pub fn RepoList() -> Element {
-    rsx! { RepoListContent { title: "Repo".to_string(), subtitle: "All repos".to_string() } }
-}
-
-#[component]
-fn RepoListContent(title: String, subtitle: String) -> Element {
+pub fn RepoListContent(title: String, subtitle: String) -> Element {
     let mut page_size = use_signal(|| 50u32);
     let mut current_page = use_signal(|| 1u32);
 
@@ -131,4 +121,9 @@ fn RepoListContent(title: String, subtitle: String) -> Element {
             }
         }
     }
+}
+
+#[component]
+pub fn RepoList() -> Element {
+    rsx! { RepoListContent { title: "Repo".to_string(), subtitle: "All repos".to_string() } }
 }

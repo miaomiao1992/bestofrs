@@ -7,3 +7,6 @@ pub use repo_row::*;
 
 mod markdown;
 pub use markdown::*;
+
+mod io_cell;
+pub use io_cell::IOCell;

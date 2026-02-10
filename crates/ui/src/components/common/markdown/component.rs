@@ -1,9 +1,12 @@
 use dioxus::prelude::*;
 use dioxus_markdown::{LinkDescription, Markdown};
+use dioxus_use_js::use_js;
 
 use super::rewrite::{
-    build_markdown_link_rewrite_script, next_markdown_root_id, resolve_href, resolve_src,
+    next_markdown_root_id, resolve_href, resolve_src,
 };
+
+use_js!("src/js/dom_bridge.js"::rewrite_markdown_links);
 
 #[component]
 pub fn CommonMarkdown(
@@ -48,8 +51,10 @@ pub fn CommonMarkdown(
     };
 
     use_effect(move || {
-        let script = build_markdown_link_rewrite_script(&effect_root_id);
-        _ = document::eval(&script);
+        let root_id = effect_root_id.clone();
+        spawn(async move {
+            let _ = rewrite_markdown_links::<()>(root_id).await;
+        });
     });
 
     rsx! {
