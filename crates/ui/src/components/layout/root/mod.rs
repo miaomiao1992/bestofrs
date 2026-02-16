@@ -1,4 +1,5 @@
 mod footer;
+mod gearmap;
 mod header_nav;
 mod fuzzy_search;
 mod scroll_progress;

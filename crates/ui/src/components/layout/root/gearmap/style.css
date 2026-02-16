@@ -1,0 +1,38 @@
+.gear-spin {
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--gear-spin-seconds, 60s);
+}
+
+.gear-spin-cw {
+  animation-direction: normal;
+}
+
+.gear-spin-ccw {
+  animation-direction: reverse;
+}
+
+.gear-spin-delayed {
+  animation-delay: 6s;
+}
+
+.gear-lottie-drop-in {
+  animation: gear-lottie-drop-in 6s cubic-bezier(0.2, 0.85, 0.89, 1) both;
+}
+
+@keyframes gear-lottie-drop-in {
+  0% {
+    margin-top: -420px;
+  }
+
+  80% {
+    margin-top: -420px;
+  }
+
+  100% {
+    margin-top: 0;
+  }
+}

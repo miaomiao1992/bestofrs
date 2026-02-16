@@ -59,7 +59,9 @@ pub fn RootLayout() -> Element {
                         ScrollProgress {}
                         div { class: "mx-auto flex max-w-6xl items-center justify-between px-4 py-3",
                             div { class: "flex items-center gap-6",
-                                Link { class: "font-semibold tracking-tight text-secondary-4", to: Route::HomeView {}, "bestofrs" }
+                                Link { class: "text-secondary-4", to: Route::HomeView {},
+                                    icons::BestOfRSIcon { height: 40.0 }
+                                }
                                 HeaderNav {}
                             }
                             div { class: "flex items-center gap-3",
@@ -84,7 +86,7 @@ pub fn RootLayout() -> Element {
                 }
 
                 main {
-                    class: "mx-auto w-full max-w-6xl flex-1 px-4 pb-10 pt-[var(--header-height)]",
+                    class: "mx-auto w-full max-w-6xl flex-1 px-12 pb-10 pt-[var(--header-height)]",
                     SuspenseBoundary {
                         fallback: move |_: SuspenseContext| {
                             rsx! {

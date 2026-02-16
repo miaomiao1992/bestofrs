@@ -10,3 +10,6 @@ pub use markdown::*;
 
 mod io_cell;
 pub use io_cell::IOCell;
+
+mod lottie_web_comp;
+pub use lottie_web_comp::LottieWebComp;

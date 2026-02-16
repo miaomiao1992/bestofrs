@@ -37,7 +37,7 @@ pub fn IOCell(props: IOCellProps) -> Element {
                         .clone()
                         .unwrap_or_else(|| {
                             rsx! {
-                                Skeleton { class: "skeleton w-screen h-screen bg-red-700" }
+                                Skeleton { class: "skeleton w-full min-h-[220px] rounded-xl border border-primary-6" }
                             }
                         })
                 },
