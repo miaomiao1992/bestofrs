@@ -49,10 +49,17 @@ impl GithubClient {
 struct GithubRepoResponse {
     id: i64,
     full_name: String,
+    homepage: Option<String>,
+    owner: GithubRepoOwner,
     stargazers_count: i64,
     forks_count: i64,
     open_issues_count: i64,
     subscribers_count: i64,
+}
+
+#[derive(Debug, Clone, serde::Deserialize)]
+struct GithubRepoOwner {
+    avatar_url: Option<String>,
 }
 
 #[derive(Debug, Clone, serde::Deserialize)]
@@ -80,6 +87,15 @@ impl GithubGateway for GithubClient {
         Ok(GithubRepoInfo {
             id: repo.id,
             full_name: repo.full_name,
+            homepage: repo
+                .homepage
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
+            owner_avatar_url: repo
+                .owner
+                .avatar_url
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
             stargazers_count: repo.stargazers_count,
             forks_count: repo.forks_count,
             open_issues_count: repo.open_issues_count,

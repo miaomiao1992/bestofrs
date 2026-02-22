@@ -40,6 +40,8 @@ pub trait RepoSearchCache: Send + Sync {
 pub struct GithubRepoInfo {
     pub id: i64,
     pub full_name: String,
+    pub homepage: Option<String>,
+    pub owner_avatar_url: Option<String>,
     pub stargazers_count: i64,
     pub forks_count: i64,
     pub open_issues_count: i64,

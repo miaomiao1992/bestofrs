@@ -12,6 +12,8 @@ struct RepoDb {
     id: String,
     github_repo_id: Option<i64>,
     full_name: Option<String>,
+    homepage_url: Option<String>,
+    avatar_url: Option<String>,
     stars: i64,
     forks: i64,
     open_issues: i64,
@@ -26,6 +28,8 @@ impl From<RepoDb> for Repo {
             id: RepoId::new_unchecked(db.id),
             github_repo_id: db.github_repo_id,
             full_name: db.full_name,
+            homepage_url: db.homepage_url,
+            avatar_url: db.avatar_url,
             stars: db.stars,
             forks: db.forks,
             open_issues: db.open_issues,
@@ -64,6 +68,7 @@ impl RepoRepo for PostgresRepoRepo {
             r#"
             INSERT INTO repos (
               id, github_repo_id, full_name,
+              homepage_url, avatar_url,
               stars, forks, open_issues, watchers,
               last_fetched_at, etag,
               updated_at
@@ -75,6 +80,8 @@ impl RepoRepo for PostgresRepoRepo {
             b.push_bind(r.id.as_str())
                 .push_bind(r.github_repo_id)
                 .push_bind(&r.full_name)
+                .push_bind(&r.homepage_url)
+                .push_bind(&r.avatar_url)
                 .push_bind(r.stars)
                 .push_bind(r.forks)
                 .push_bind(r.open_issues)
@@ -89,6 +96,8 @@ impl RepoRepo for PostgresRepoRepo {
             ON CONFLICT(id) DO UPDATE SET
               github_repo_id = excluded.github_repo_id,
               full_name = excluded.full_name,
+              homepage_url = excluded.homepage_url,
+              avatar_url = excluded.avatar_url,
               stars = excluded.stars,
               forks = excluded.forks,
               open_issues = excluded.open_issues,
@@ -111,6 +120,7 @@ impl RepoRepo for PostgresRepoRepo {
             r#"
             SELECT
               id, github_repo_id, full_name,
+              homepage_url, avatar_url,
               stars, forks, open_issues, watchers,
               last_fetched_at, etag
             FROM repos
@@ -137,6 +147,7 @@ impl RepoRepo for PostgresRepoRepo {
             r#"
             SELECT
               id, github_repo_id, full_name,
+              homepage_url, avatar_url,
               stars, forks, open_issues, watchers,
               last_fetched_at, etag
             FROM repos
@@ -174,6 +185,7 @@ impl RepoRepo for PostgresRepoRepo {
             r#"
             SELECT
               r.id, r.github_repo_id, r.full_name,
+              r.homepage_url, r.avatar_url,
               r.stars, r.forks, r.open_issues, r.watchers,
               r.last_fetched_at, r.etag
             FROM repos r

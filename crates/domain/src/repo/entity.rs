@@ -7,6 +7,8 @@ pub struct Repo {
     pub id: RepoId,
     pub github_repo_id: Option<i64>,
     pub full_name: Option<String>,
+    pub homepage_url: Option<String>,
+    pub avatar_url: Option<String>,
     pub stars: i64,
     pub forks: i64,
     pub open_issues: i64,

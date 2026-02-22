@@ -112,11 +112,22 @@ impl IngestDailySnapshots {
                 let today = today.clone();
                 async move {
                     let repo = github.fetch_repo(p.id.as_str()).await?;
+                    let homepage_url = Self::resolve_homepage_url(
+                        repo.homepage.as_deref(),
+                        p.url.as_deref(),
+                    );
+                    let avatar_url = Self::resolve_avatar_url(
+                        p.id.as_str(),
+                        homepage_url.as_deref(),
+                        repo.owner_avatar_url.as_deref(),
+                    );
 
                     let domain_repo = Repo {
                         id: p.id.clone(),
                         github_repo_id: Some(repo.id),
                         full_name: Some(repo.full_name),
+                        homepage_url,
+                        avatar_url,
                         stars: repo.stargazers_count,
                         forks: repo.forks_count,
                         open_issues: repo.open_issues_count,
@@ -160,5 +171,40 @@ impl IngestDailySnapshots {
             repos_upserted,
             snapshots_inserted,
         })
+    }
+
+    fn resolve_homepage_url(github_homepage: Option<&str>, project_url: Option<&str>) -> Option<String> {
+        github_homepage
+            .and_then(Self::normalize_url)
+            .or_else(|| project_url.and_then(Self::normalize_url))
+    }
+
+    fn resolve_avatar_url(
+        repo_id: &str,
+        homepage_url: Option<&str>,
+        owner_avatar_url: Option<&str>,
+    ) -> Option<String> {
+        Self::homepage_favicon_url(homepage_url)
+            .or_else(|| owner_avatar_url.and_then(Self::normalize_url))
+            .or_else(|| {
+                let owner = repo_id.split('/').next()?;
+                if owner.is_empty() {
+                    return None;
+                }
+                Some(format!("https://github.com/{owner}.png"))
+            })
+    }
+
+    fn homepage_favicon_url(homepage_url: Option<&str>) -> Option<String> {
+        let homepage = homepage_url.and_then(Self::normalize_url)?;
+        Some(format!("{}/favicon.ico", homepage.trim_end_matches('/')))
+    }
+
+    fn normalize_url(value: &str) -> Option<String> {
+        let trimmed = value.trim();
+        if trimmed.is_empty() {
+            return None;
+        }
+        Some(trimmed.to_string())
     }
 }
