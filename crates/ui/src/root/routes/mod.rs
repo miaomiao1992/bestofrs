@@ -6,8 +6,7 @@ mod tag;
 
 use super::layouts::{AdminLayout, RootLayout};
 use dioxus::prelude::*;
-
-use admin::AdminView;
+use admin::{AdminProjectsView, AdminTagsView};
 use home::HomeView;
 use login::LoginView;
 use repo::{RepoDetailView, RepoListView};
@@ -28,8 +27,13 @@ pub enum Route {
         #[route("/tag")]
         TagListView {},
         #[layout(AdminLayout)]
-            #[route("/admin")]
-            AdminView {},
+            #[nest("/admin")]
+                #[redirect("/", || Route::AdminProjectsView {})]
+                #[route("/projects")]
+                AdminProjectsView {},
+                #[route("/tags")]
+                AdminTagsView {},
+            #[end_nest]
         #[end_layout]
         #[route("/login")]
         LoginView {},
