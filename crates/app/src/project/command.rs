@@ -13,18 +13,12 @@ pub struct ImportProjectCommand {
     pub slug: String,
     pub description: String,
 
-    #[serde(default)]
-    pub override_description: bool,
-
     pub url: Option<String>,
-
-    #[serde(default)]
-    pub override_url: bool,
+    pub avatar_url: Option<String>,
 
     pub status: Option<String>,
     pub logo: Option<String>,
     pub twitter: Option<String>,
-    pub comments: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -100,13 +94,11 @@ impl ProjectCommandHandler {
                 name: item.name,
                 slug: item.slug,
                 description: item.description,
-                override_description: item.override_description,
                 url: item.url,
-                override_url: item.override_url,
+                avatar_url: item.avatar_url,
                 status: item.status,
                 logo: item.logo,
                 twitter: item.twitter,
-                comments: item.comments,
             });
         }
 

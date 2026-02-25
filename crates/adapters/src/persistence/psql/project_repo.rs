@@ -12,13 +12,11 @@ struct ProjectDb {
     name: String,
     slug: String,
     description: String,
-    override_description: bool,
     url: Option<String>,
-    override_url: bool,
+    avatar_url: Option<String>,
     status: Option<String>,
     logo: Option<String>,
     twitter: Option<String>,
-    comments: Option<String>,
 }
 
 impl From<ProjectDb> for Project {
@@ -28,13 +26,11 @@ impl From<ProjectDb> for Project {
             name: db.name,
             slug: db.slug,
             description: db.description,
-            override_description: db.override_description,
             url: db.url,
-            override_url: db.override_url,
+            avatar_url: db.avatar_url,
             status: db.status,
             logo: db.logo,
             twitter: db.twitter,
-            comments: db.comments,
         }
     }
 }
@@ -68,9 +64,8 @@ impl ProjectRepo for PostgresProjectRepo {
             INSERT INTO projects (
               repo_id,
               name, slug, description,
-              override_description,
-              url, override_url,
-              status, logo, twitter, comments,
+              url, avatar_url,
+              status, logo, twitter,
               updated_at
             )
             "#,
@@ -81,13 +76,11 @@ impl ProjectRepo for PostgresProjectRepo {
                 .push_bind(&p.name)
                 .push_bind(&p.slug)
                 .push_bind(&p.description)
-                .push_bind(p.override_description)
                 .push_bind(&p.url)
-                .push_bind(p.override_url)
+                .push_bind(&p.avatar_url)
                 .push_bind(&p.status)
                 .push_bind(&p.logo)
                 .push_bind(&p.twitter)
-                .push_bind(&p.comments)
                 .push("NOW()");
         });
 
@@ -97,13 +90,11 @@ impl ProjectRepo for PostgresProjectRepo {
               name = excluded.name,
               slug = excluded.slug,
               description = excluded.description,
-              override_description = excluded.override_description,
               url = excluded.url,
-              override_url = excluded.override_url,
+              avatar_url = excluded.avatar_url,
               status = excluded.status,
               logo = excluded.logo,
               twitter = excluded.twitter,
-              comments = excluded.comments,
               updated_at = excluded.updated_at
             "#,
         );
@@ -128,9 +119,8 @@ impl ProjectRepo for PostgresProjectRepo {
             SELECT
               repo_id,
               name, slug, description,
-              override_description,
-              url, override_url,
-              status, logo, twitter, comments
+              url, avatar_url,
+              status, logo, twitter
             FROM projects
             ORDER BY name ASC
             LIMIT $1 OFFSET $2

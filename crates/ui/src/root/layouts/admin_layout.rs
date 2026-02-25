@@ -1,11 +1,13 @@
 use dioxus::prelude::*;
 
 use crate::components::AdminStateHint;
+use crate::components::icons::{ArrowLeftIcon, ScrollTextIcon, TagsIcon};
 use crate::components::separator::Separator;
+use crate::components::avatar::{Avatar, AvatarFallback, AvatarImage, AvatarImageSize};
 use crate::components::sidebar::{
     Sidebar, SidebarCollapsible, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
-    SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider,
-    SidebarRail, SidebarTrigger, SidebarVariant,
+    SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuButtonSize,
+    SidebarMenuItem, SidebarProvider, SidebarRail, SidebarTrigger, SidebarVariant,
 };
 use crate::root::layouts::{UserContext, UserState};
 use crate::root::Route;
@@ -18,7 +20,10 @@ pub fn AdminLayout() -> Element {
     let current_route = use_route::<Route>();
     let mut redirected = use_signal(|| false);
     let user_state = use_context::<UserContext>();
-    let is_admin = matches!(user_state(), UserState::User(me) if me.role == "Admin");
+    let (is_admin, user_info) = match &*user_state.read() {
+        UserState::User(user) if user.role == "Admin" => (true, Some(user.clone())),
+        _ => (false, None),
+    };
     let is_projects = matches!(current_route, Route::AdminProjectsView {});
     let is_tags = matches!(current_route, Route::AdminTagsView {});
 
@@ -27,7 +32,7 @@ pub fn AdminLayout() -> Element {
             return;
         }
 
-        let unauthorized = match user_state() {
+        let unauthorized = match &*user_state.read() {
             UserState::User(me) => me.role != "Admin",
             UserState::Loading => false,
             UserState::Guest | UserState::Error(_) => true,
@@ -47,9 +52,33 @@ pub fn AdminLayout() -> Element {
                         variant: SidebarVariant::Sidebar,
                         collapsible: SidebarCollapsible::Icon,
                         SidebarHeader {
-                            div { class: "rounded-md border border-primary-6 bg-primary-2 px-3 py-2",
-                                div { class: "font-mono text-[11px] font-semibold tracking-widest text-secondary-5", "ADMIN / CONTROL" }
-                                div { class: "mt-1 text-sm font-semibold text-secondary-3", "BestOfRust Console" }
+                            SidebarMenu {
+                                SidebarMenuItem {
+                                    SidebarMenuButton {
+                                        size: SidebarMenuButtonSize::Lg,
+                                        as: move |attributes: Vec<Attribute>| rsx! {
+                                            div {
+                                                ..attributes,
+                                                if let Some(user) = &user_info {
+                                                    Avatar {
+                                                        size: AvatarImageSize::Small,
+                                                        AvatarImage {
+                                                            src: user.avatar_url.clone().unwrap_or_default(),
+                                                            alt: user.login.clone(),
+                                                        }
+                                                        AvatarFallback {
+                                                            "{user.login.chars().next().unwrap_or('?')}"
+                                                        }
+                                                    }
+                                                    div { class: "grid flex-1 text-left text-sm leading-tight",
+                                                        span { class: "truncate font-semibold", "{user.login}" }
+                                                        span { class: "truncate text-xs", "Admin" }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                    }
+                                }
                             }
                         }
                         SidebarContent {
@@ -59,12 +88,14 @@ pub fn AdminLayout() -> Element {
                                     SidebarMenuItem {
                                         SidebarMenuButton {
                                             is_active: is_projects,
+                                            tooltip: rsx!("Project 管理"),
                                             as: move |attributes: Vec<Attribute>| rsx! {
                                                 button {
                                                     onclick: move |_| {
                                                         let _ = navigator_for_projects.push(Route::AdminProjectsView {});
                                                     },
                                                     ..attributes,
+                                                    ScrollTextIcon {}
                                                     span { "Project 管理" }
                                                 }
                                             },
@@ -73,12 +104,14 @@ pub fn AdminLayout() -> Element {
                                     SidebarMenuItem {
                                         SidebarMenuButton {
                                             is_active: is_tags,
+                                            tooltip: rsx!("Tags / Jobs 管理"),
                                             as: move |attributes: Vec<Attribute>| rsx! {
                                                 button {
                                                     onclick: move |_| {
                                                         let _ = navigator_for_tags.push(Route::AdminTagsView {});
                                                     },
                                                     ..attributes,
+                                                    TagsIcon {}
                                                     span { "Tags / Jobs 管理" }
                                                 }
                                             },
@@ -88,8 +121,22 @@ pub fn AdminLayout() -> Element {
                             }
                         }
                         SidebarFooter {
-                            div { class: "border-t border-dashed border-primary-6 px-2 pt-2 text-xs font-mono text-secondary-5",
-                                "role: admin"
+                            SidebarMenu {
+                                Link {
+                                    to: Route::HomeView {},
+                                    class: "sidebar-menu-item block",
+                                    div {
+                                        class: "sidebar-menu-button flex items-center gap-2",
+                                        "data-size": "lg",
+                                        div { class: "flex aspect-square h-8 w-8 items-center justify-center rounded-lg bg-primary-6 text-primary-1",
+                                            ArrowLeftIcon { width: 16 }
+                                        }
+                                        div { class: "grid flex-1 text-left text-sm leading-tight",
+                                            span { class: "truncate font-semibold", "返回" }
+                                            span { class: "truncate text-xs", "返回首页" }
+                                        }
+                                    }
+                                }
                             }
                         }
                         SidebarRail {}
@@ -116,7 +163,7 @@ pub fn AdminLayout() -> Element {
                     }
                 }
             }
-        } else if matches!(user_state(), UserState::Loading) {
+        } else if matches!(*user_state.read(), UserState::Loading) {
             AdminStateHint { message: "Loading...".to_string() }
         } else {
             AdminStateHint { message: "Redirecting...".to_string() }

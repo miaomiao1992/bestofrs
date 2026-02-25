@@ -118,6 +118,7 @@ impl IngestDailySnapshots {
                     );
                     let avatar_url = Self::resolve_avatar_url(
                         p.id.as_str(),
+                        p.avatar_url.as_deref(),
                         homepage_url.as_deref(),
                         repo.owner_avatar_url.as_deref(),
                     );
@@ -181,10 +182,13 @@ impl IngestDailySnapshots {
 
     fn resolve_avatar_url(
         repo_id: &str,
+        project_avatar_url: Option<&str>,
         homepage_url: Option<&str>,
         owner_avatar_url: Option<&str>,
     ) -> Option<String> {
-        Self::homepage_favicon_url(homepage_url)
+        project_avatar_url
+            .and_then(Self::normalize_url)
+            .or_else(|| Self::homepage_favicon_url(homepage_url))
             .or_else(|| owner_avatar_url.and_then(Self::normalize_url))
             .or_else(|| {
                 let owner = repo_id.split('/').next()?;

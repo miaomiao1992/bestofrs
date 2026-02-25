@@ -35,13 +35,11 @@ pub async fn import_projects(
                 name: it.name,
                 slug: it.slug,
                 description: it.description,
-                override_description: it.override_description,
                 url: it.url,
-                override_url: it.override_url,
+                avatar_url: it.avatar_url,
                 status: it.status,
                 logo: it.logo,
                 twitter: it.twitter,
-                comments: it.comments,
             })
             .collect(),
     };
@@ -88,13 +86,11 @@ pub async fn import_projects_json(json_text: String) -> ServerFnResult<ImportPro
                 name: it.name.clone(),
                 slug: it.name,
                 description: String::new(),
-                override_description: false,
                 url: None,
-                override_url: false,
+                avatar_url: None,
                 status: None,
                 logo: None,
                 twitter: None,
-                comments: None,
             })
             .collect(),
     };

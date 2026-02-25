@@ -4,7 +4,7 @@ mod login;
 mod repo;
 mod tag;
 
-use super::layouts::{AdminLayout, RootLayout};
+use super::layouts::{AdminLayout, RootLayout, UserLayout};
 use dioxus::prelude::*;
 use admin::{AdminProjectsView, AdminTagsView};
 use home::HomeView;
@@ -16,16 +16,6 @@ use tag::TagListView;
 #[rustfmt::skip]
 pub enum Route {
     #[layout(RootLayout)]
-        #[route("/")]
-        HomeView {},
-        #[nest("/repo")]
-            #[route("/")]
-            RepoListView {},
-            #[route("/:owner/:name")]
-            RepoDetailView { owner: String, name: String },
-        #[end_nest]
-        #[route("/tag")]
-        TagListView {},
         #[layout(AdminLayout)]
             #[nest("/admin")]
                 #[redirect("/", || Route::AdminProjectsView {})]
@@ -35,6 +25,17 @@ pub enum Route {
                 AdminTagsView {},
             #[end_nest]
         #[end_layout]
-        #[route("/login")]
-        LoginView {},
+        #[layout(UserLayout)]
+            #[route("/")]
+            HomeView {},
+            #[nest("/repo")]
+                #[route("/")]
+                RepoListView {},
+                #[route("/:owner/:name")]
+                RepoDetailView { owner: String, name: String },
+            #[end_nest]
+            #[route("/tag")]
+            TagListView {},
+            #[route("/login")]
+            LoginView {},
 }

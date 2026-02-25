@@ -13,11 +13,9 @@ pub struct Project {
     pub name: String,
     pub slug: String,
     pub description: String,
-    pub override_description: bool,
     pub url: Option<String>,
-    pub override_url: bool,
+    pub avatar_url: Option<String>,
     pub status: Option<String>,
     pub logo: Option<String>,
     pub twitter: Option<String>,
-    pub comments: Option<String>,
 }

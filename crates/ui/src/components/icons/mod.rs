@@ -1,6 +1,32 @@
 use dioxus::prelude::*;
 
 #[component]
+pub fn ArrowLeftIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-arrow-left-icon lucide-arrow-left",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "m12 19-7-7 7-7" }
+            path { d: "M19 12H5" }
+        }
+    }
+}
+
+
+#[component]
 pub fn MoonIcon(
     #[props(default = 24)] size: u32,
     #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
@@ -263,7 +289,7 @@ pub fn UsersRoundIcon(
 ) -> Element {
     rsx! {
         svg {
-            class: "lucide lucide-users-round-icon lucide-users-round",
+            class: "lucide lucide-arrow-left-icon lucide-arrow-left",
             fill: "none",
             height: "{height}",
             stroke: "currentColor",
@@ -274,13 +300,37 @@ pub fn UsersRoundIcon(
             width: "{width}",
             xmlns: "http://www.w3.org/2000/svg",
             ..attributes,
-            path { d: "M18 21a8 8 0 0 0-16 0" }
-            circle { cx: "10", cy: "8", r: "5" }
-            path { d: "M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" }
+            path { d: "m12 19-7-7 7-7" }
+            path { d: "M19 12H5" }
         }
     }
 }
 
+
+#[component]
+pub fn ArrowRightIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-arrow-right-icon lucide-arrow-right",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "M5 12h14" }
+            path { d: "m12 5 7 7-7 7" }
+        }
+    }
+}
 #[component]
 pub fn SunIcon(
     #[props(default = 24)] size: u32,

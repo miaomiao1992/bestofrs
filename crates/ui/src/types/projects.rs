@@ -8,6 +8,11 @@ pub struct ProjectDto {
     pub slug: String,
     pub description: String,
     pub repo_id: String,
+    pub url: Option<String>,
+    pub avatar_url: Option<String>,
+    pub status: Option<String>,
+    pub logo: Option<String>,
+    pub twitter: Option<String>,
 }
 
 impl From<Project> for ProjectDto {
@@ -20,6 +25,11 @@ impl From<Project> for ProjectDto {
             slug: value.slug,
             description: value.description,
             repo_id,
+            url: value.url,
+            avatar_url: value.avatar_url,
+            status: value.status,
+            logo: value.logo,
+            twitter: value.twitter,
         }
     }
 }
@@ -32,18 +42,12 @@ pub struct ProjectImportItem {
     pub description: String,
     pub repo_id: String,
 
-    #[serde(default)]
-    pub override_description: bool,
-
     pub url: Option<String>,
-
-    #[serde(default)]
-    pub override_url: bool,
+    pub avatar_url: Option<String>,
 
     pub status: Option<String>,
     pub logo: Option<String>,
     pub twitter: Option<String>,
-    pub comments: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
