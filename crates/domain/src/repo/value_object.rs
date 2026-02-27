@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 /// Repository identifier in the form `owner/name`.
 ///
@@ -69,10 +70,23 @@ impl AsRef<str> for RepoId {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tag {
     pub label: TagLabel,
     pub value: TagValue,
+    pub description: Option<String>,
+}
+impl PartialEq for Tag {
+    fn eq(&self, other: &Self) -> bool {
+        self.label == other.label && self.value == other.value
+    }
+}
+impl Eq for Tag {}
+impl Hash for Tag {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.label.hash(state);
+        self.value.hash(state);
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]

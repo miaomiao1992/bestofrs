@@ -2,11 +2,11 @@ use app::prelude::Pagination;
 use dioxus::prelude::*;
 
 use crate::IO::repos::{
-    bulk_update_repo_tag, create_tag, delete_tag, get_repo, list_tags, replace_repo_tags,
-    search_repos,
+    bulk_update_repo_tag, create_tag, delete_tag, get_repo, list_tags_with_meta, replace_repo_tags,
+    search_repos, update_tag,
 };
 use crate::types::search::{SearchRepoDto, SearchResultDto};
-use crate::types::tags::TagDto;
+use crate::types::tags::{TagDto, TagListItemDto};
 
 fn empty_search_result(page: Pagination) -> SearchResultDto {
     SearchResultDto {
@@ -28,13 +28,11 @@ pub fn TagsManagement() -> Element {
     let mut refresh = use_signal(|| 0u32);
     let tags_page = use_server_future(move || {
         let _ = refresh();
-        list_tags(Pagination {
-            limit: Some(500),
-            offset: Some(0),
-        })
+        list_tags_with_meta(Some(1), Some(500), None, Some(1))
     })?;
 
-    let mut selected_tag = use_signal(|| Option::<TagDto>::None);
+    let mut selected_tag = use_signal(|| Option::<TagListItemDto>::None);
+    let mut selected_tag_description = use_signal(String::new);
     let mut create_label = use_signal(String::new);
     let mut create_value = use_signal(String::new);
     let mut tag_message = use_signal(|| Option::<String>::None);
@@ -126,14 +124,18 @@ pub fn TagsManagement() -> Element {
                             for tag in page.items {
                                 div { key: "{tag.label}:{tag.value}", class: "flex items-center justify-between gap-2 rounded-md border border-primary-6 bg-primary px-2 py-2",
                                     button {
-                                        class: if selected_tag().as_ref() == Some(&tag) {
+                                        class: if selected_tag().as_ref().map(|x| (&x.label, &x.value))
+                                            == Some((&tag.label, &tag.value)) {
                                             "rounded-md border border-secondary-2 bg-secondary-2 px-2 py-1 text-xs font-medium text-primary"
                                         } else {
                                             "rounded-md border border-primary-6 bg-primary-1 px-2 py-1 text-xs text-secondary-5 hover:bg-primary-3"
                                         },
                                         onclick: {
                                             let tag_for_select = tag.clone();
-                                            move |_| selected_tag.set(Some(tag_for_select.clone()))
+                                            move |_| {
+                                                selected_tag_description.set(tag_for_select.description.clone().unwrap_or_default());
+                                                selected_tag.set(Some(tag_for_select.clone()));
+                                            }
                                         },
                                         "{tag.label}:{tag.value}"
                                     }
@@ -149,8 +151,10 @@ pub fn TagsManagement() -> Element {
                                                 spawn(async move {
                                                     match delete_tag(target.label.clone(), target.value.clone()).await {
                                                         Ok(()) => {
-                                                            if selected_tag().as_ref() == Some(&target) {
+                                                            if selected_tag().as_ref().map(|x| (&x.label, &x.value))
+                                                                == Some((&target.label, &target.value)) {
                                                                 selected_tag.set(None);
+                                                                selected_tag_description.set(String::new());
                                                             }
                                                             *tag_message.write() = Some("删除成功".to_string());
                                                             refresh.with_mut(|v| *v += 1);
@@ -163,6 +167,41 @@ pub fn TagsManagement() -> Element {
                                         },
                                         "删除"
                                     }
+                                }
+                            }
+                        }
+                        if let Some(tag) = selected_tag() {
+                            div { class: "space-y-2 rounded-md border border-primary-6 bg-primary p-3",
+                                div { class: "text-xs font-mono text-secondary-5", "更新描述: {tag.label}:{tag.value}" }
+                                textarea {
+                                    class: "w-full rounded-md border border-primary-6 bg-primary-1 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-focused-border",
+                                    rows: "3",
+                                    value: selected_tag_description,
+                                    oninput: move |e| *selected_tag_description.write() = e.value(),
+                                }
+                                button {
+                                    class: "rounded-md border border-primary-6 bg-primary-1 px-3 py-2 text-sm hover:bg-primary-3 disabled:opacity-50",
+                                    disabled: tag_pending(),
+                                    onclick: move |_| {
+                                        let Some(target) = selected_tag() else {
+                                            return;
+                                        };
+                                        *tag_pending.write() = true;
+                                        *tag_message.write() = None;
+                                        let description = selected_tag_description().trim().to_string();
+                                        let description = if description.is_empty() { None } else { Some(description) };
+                                        spawn(async move {
+                                            match update_tag(target.label.clone(), target.value.clone(), description).await {
+                                                Ok(()) => {
+                                                    *tag_message.write() = Some("更新成功".to_string());
+                                                    refresh.with_mut(|v| *v += 1);
+                                                }
+                                                Err(err) => *tag_message.write() = Some(err.to_string()),
+                                            }
+                                            *tag_pending.write() = false;
+                                        });
+                                    },
+                                    "更新描述"
                                 }
                             }
                         }
@@ -293,9 +332,12 @@ pub fn TagsManagement() -> Element {
                                             label { key: "repo-editor-{tag.label}:{tag.value}", class: "flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 hover:bg-primary-3",
                                                 input {
                                                     r#type: "checkbox",
-                                                    checked: repo_editor_selected_tags().contains(&tag),
+                                                    checked: repo_editor_selected_tags().iter().any(|x| x.label == tag.label && x.value == tag.value),
                                                     onchange: {
-                                                        let target_tag = tag.clone();
+                                                        let target_tag = TagDto {
+                                                            label: tag.label.clone(),
+                                                            value: tag.value.clone(),
+                                                        };
                                                         move |_| {
                                                             let mut selected_tags = repo_editor_selected_tags();
                                                             if let Some(index) = selected_tags.iter().position(|x| x == &target_tag) {

@@ -28,7 +28,7 @@ pub fn Home() -> Element {
                             "A curated observation of the Rust ecosystem. Start from the repository index, browse by tags, and inspect project trends in detail."
                         }
                         div { class: "flex flex-wrap gap-3 pt-2",
-                            Link { class: "border border-secondary-2 bg-secondary-2 px-5 py-2.5 text-sm font-medium text-primary transition-all hover:-translate-y-0.5 hover:shadow-comic-sm", to: crate::root::Route::RepoListView {}, "Open Index" }
+                            Link { class: "border border-secondary-2 bg-secondary-2 px-5 py-2.5 text-sm font-medium text-primary transition-all hover:-translate-y-0.5 hover:shadow-comic-sm", to: crate::root::Route::RepoListView { tags: None }, "Open Index" }
                             Link { class: "border border-primary-6 bg-primary-1 px-5 py-2.5 text-sm font-medium text-secondary-4 transition-all hover:-translate-y-0.5 hover:shadow-comic-sm", to: crate::root::Route::TagListView {}, "Browse Tags" }
                         }
                     }

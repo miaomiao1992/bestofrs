@@ -4,6 +4,8 @@ pub use pagination::*;
 
 mod repo_manuscript_card;
 pub use repo_manuscript_card::RepoManuscriptCard;
+mod repo_avatar;
+pub use repo_avatar::{build_repo_avatar_urls, RepoAvatar};
 
 mod markdown;
 pub use markdown::*;

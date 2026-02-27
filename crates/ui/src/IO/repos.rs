@@ -5,7 +5,7 @@ use crate::types::repos::{BulkUpdateRepoTagResultDto, RepoDto, RepoReadmeDto};
 use crate::types::search::SearchResultDto;
 use crate::types::snapshot_deltas::SnapshotDeltaDto;
 use crate::types::snapshots::SnapshotDto;
-use crate::types::tags::TagDto;
+use crate::types::tags::{TagDto, TagFacetDto, TagListItemDto};
 
 use app::prelude::{Page, Pagination};
 use app::repo::{
@@ -139,6 +139,30 @@ pub async fn list_tags(page: Pagination) -> ServerFnResult<Page<TagDto>> {
     Ok(tags_page.map(TagDto::from))
 }
 
+#[post("/api/tags/list", state: State)]
+pub async fn list_tags_with_meta(
+    page: Option<u32>,
+    page_size: Option<u32>,
+    limit: Option<u32>,
+    top_n: Option<u32>,
+) -> ServerFnResult<Page<TagListItemDto>> {
+    let app_state = state.0;
+    let page = page.unwrap_or(1).max(1);
+    let limit = limit.or(page_size).unwrap_or(Pagination::DEFAULT_LIMIT);
+    let pagination = Pagination {
+        limit: Some(limit),
+        offset: Some(limit.saturating_mul(page.saturating_sub(1))),
+    };
+    let top_n = top_n.unwrap_or(5).max(1);
+    let tags_page = app_state
+        .repo
+        .query
+        .list_tags_with_meta(pagination, top_n)
+        .await
+        .map_err(api_error)?;
+    Ok(tags_page.map(TagListItemDto::from))
+}
+
 #[post("/api/tags/search", state: State)]
 pub async fn search_tags(key: String, page: Pagination) -> ServerFnResult<Page<TagDto>> {
     let app_state = state.0;
@@ -158,6 +182,22 @@ pub async fn create_tag(label: String, value: String) -> ServerFnResult<()> {
         .repo
         .command
         .create_tag(TagInput { label, value })
+        .await
+        .map_err(api_error)?;
+    Ok(())
+}
+
+#[post("/api/tags/update", state: State)]
+pub async fn update_tag(
+    label: String,
+    value: String,
+    description: Option<String>,
+) -> ServerFnResult<()> {
+    let app_state = state.0;
+    app_state
+        .repo
+        .command
+        .update_tag(label, value, description)
         .await
         .map_err(api_error)?;
     Ok(())
@@ -189,6 +229,21 @@ pub async fn list_repos_by_label(
         .await
         .map_err(api_error)?;
     Ok(repos_page.map(RepoDto::from))
+}
+
+#[post("/api/repos/tags/facets", state: State)]
+pub async fn list_repo_tag_facets(
+    active_tag_values: Vec<String>,
+    limit: Option<u32>,
+) -> ServerFnResult<Vec<TagFacetDto>> {
+    let app_state = state.0;
+    let items = app_state
+        .repo
+        .query
+        .list_tag_facets_by_active_values(active_tag_values, limit)
+        .await
+        .map_err(api_error)?;
+    Ok(items.into_iter().map(TagFacetDto::from).collect())
 }
 
 #[post("/api/repos/:owner/:name/snapshots", state: State)]

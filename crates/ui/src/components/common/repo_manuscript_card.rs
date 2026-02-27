@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
+use crate::components::common::{build_repo_avatar_urls, RepoAvatar};
 use crate::components::icons::{ArrowRightIcon, GithubIcon, HouseIcon, StarIcon};
-use crate::components::ui::avatar::{Avatar, AvatarFallback, AvatarImage, AvatarImageSize};
+use crate::components::ui::avatar::AvatarImageSize;
 use crate::root::Route;
 use crate::types::repos::RepoDto;
 
@@ -27,39 +28,7 @@ pub fn RepoManuscriptCard(repo: RepoDto) -> Element {
         format!("https://github.com/{owner}/{name}")
     };
     let homepage = homepage_url.as_deref().and_then(normalize_url);
-    let favicon_url = homepage
-        .as_ref()
-        .map(|v| format!("{}/favicon.ico", v.trim_end_matches('/')));
-    let owner_avatar_url = if owner.is_empty() {
-        None
-    } else {
-        Some(format!("https://github.com/{owner}.png"))
-    };
-    let mut avatar_candidates = Vec::<String>::new();
-    if let Some(url) = favicon_url {
-        avatar_candidates.push(url);
-    }
-    if let Some(url) = avatar_url {
-        if !avatar_candidates.contains(&url) {
-            avatar_candidates.push(url);
-        }
-    }
-    if let Some(url) = owner_avatar_url {
-        if !avatar_candidates.contains(&url) {
-            avatar_candidates.push(url);
-        }
-    }
-    let github_fallback = "https://github.com/github.png".to_string();
-    if !avatar_candidates.contains(&github_fallback) {
-        avatar_candidates.push(github_fallback);
-    }
-    let avatar_candidates_for_error = avatar_candidates.clone();
-    let mut avatar_index = use_signal(|| 0usize);
-    let avatar_fallback = name
-        .chars()
-        .next()
-        .map(|c| c.to_ascii_uppercase().to_string())
-        .unwrap_or_else(|| "?".to_string());
+    let avatar_candidates = build_repo_avatar_urls(&id, avatar_url, homepage.clone());
 
     let route = if owner.is_empty() {
         Route::HomeView {}
@@ -79,29 +48,12 @@ pub fn RepoManuscriptCard(repo: RepoDto) -> Element {
             div { class: "relative flex shrink-0 items-center gap-3 p-4 md:w-56",
                 div { class: "relative h-16 w-16 shrink-0",
                     div { class: "absolute left-1 top-1 h-16 w-16 border border-primary-6 bg-screentone transition-all duration-200 group-hover:left-2 group-hover:top-2 group-hover:[border-color:color-mix(in_oklab,var(--grid-accent)_72%,var(--primary-color-6))] group-hover:[background-color:color-mix(in_oklab,var(--grid-accent)_18%,var(--primary-color))]" }
-                    if let Some(src) = avatar_candidates.get(avatar_index()).cloned() {
-                        Avatar {
-                            key: "{src}",
-                            class: "relative z-10 border border-primary-6 bg-primary grayscale contrast-125 transition-all group-hover:grayscale-0",
-                            size: AvatarImageSize::Large,
-                            on_error: move |_| {
-                                let next = avatar_index() + 1;
-                                if next < avatar_candidates_for_error.len() {
-                                    avatar_index.set(next);
-                                } else {
-                                    avatar_index.set(usize::MAX);
-                                }
-                            },
-                            AvatarImage {
-                                src: src,
-                                alt: "{display_name} avatar",
-                            }
-                            AvatarFallback { "{avatar_fallback}" }
-                        }
-                    } else {
-                        div { class: "relative z-10 flex h-16 w-16 items-center justify-center border border-primary-6 bg-primary-2 font-bold text-secondary-4",
-                            "{avatar_fallback}"
-                        }
+                    RepoAvatar {
+                        repo_id: id.clone(),
+                        avatar_urls: avatar_candidates,
+                        class: "relative z-10 border border-primary-6 bg-primary grayscale contrast-125 transition-all group-hover:grayscale-0".to_string(),
+                        fallback_class: "relative z-10 flex h-16 w-16 items-center justify-center border border-primary-6 bg-primary-2 font-bold text-secondary-4".to_string(),
+                        size: AvatarImageSize::Large,
                     }
                 }
                 div { class: "flex min-w-0 flex-1 flex-col justify-center gap-2 pl-2",

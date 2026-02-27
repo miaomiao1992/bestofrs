@@ -73,6 +73,7 @@ impl RepoCommandHandler {
             .map(|tag| Tag {
                 label: TagLabel::new(tag.label),
                 value: TagValue::new(tag.value),
+                description: None,
             })
             .collect::<Vec<_>>();
         self.replace_tags(&repo_id, &tags).await
@@ -82,6 +83,7 @@ impl RepoCommandHandler {
         let tag = Tag {
             label: TagLabel::new(tag.label),
             value: TagValue::new(tag.value),
+            description: None,
         };
         if Self::is_virtual_untag(&tag) {
             return Err(AppError::Domain(
@@ -91,10 +93,30 @@ impl RepoCommandHandler {
         self.repo_tags.upsert_tag(&tag).await
     }
 
+    pub async fn update_tag(
+        &self,
+        label: String,
+        value: String,
+        description: Option<String>,
+    ) -> AppResult<()> {
+        let tag = Tag {
+            label: TagLabel::new(label),
+            value: TagValue::new(value),
+            description,
+        };
+        if Self::is_virtual_untag(&tag) {
+            return Err(AppError::Domain(
+                "UNTAG is virtual and cannot be updated".to_string(),
+            ));
+        }
+        self.repo_tags.update_tag(&tag).await
+    }
+
     pub async fn delete_tag(&self, tag: TagInput) -> AppResult<()> {
         let tag = Tag {
             label: TagLabel::new(tag.label),
             value: TagValue::new(tag.value),
+            description: None,
         };
         if Self::is_virtual_untag(&tag) {
             return Err(AppError::Domain(
@@ -119,6 +141,7 @@ impl RepoCommandHandler {
         let target_tag = Tag {
             label: TagLabel::new(cmd.tag.label),
             value: TagValue::new(cmd.tag.value),
+            description: None,
         };
         if Self::is_virtual_untag(&target_tag) {
             return Err(AppError::Domain(

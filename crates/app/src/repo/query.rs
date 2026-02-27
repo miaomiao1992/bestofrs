@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::slice::from_ref;
 use std::sync::Arc;
 
@@ -6,7 +6,9 @@ use domain::{Repo, RepoId, RepoWithTags, Tag};
 
 use crate::app_error::AppResult;
 use crate::common::{Page, Pagination};
-use crate::repo::{GithubGateway, RepoRepo, RepoSearchCache, RepoTagRepo};
+use crate::repo::{
+    GithubGateway, RepoRepo, RepoSearchCache, RepoTagFacet, RepoTagListItem, RepoTagRepo,
+};
 
 #[derive(Debug, Clone)]
 pub struct RepoSearchResult {
@@ -164,6 +166,14 @@ impl RepoQueryHandler {
         self.repo_tags.search_tags_by_key(key, page).await
     }
 
+    pub async fn list_tags_with_meta(
+        &self,
+        page: Pagination,
+        top_n: u32,
+    ) -> AppResult<Page<RepoTagListItem>> {
+        self.repo_tags.list_tags_with_meta(page, top_n).await
+    }
+
     pub async fn search_by_key(&self, key: &str, page: Pagination) -> AppResult<RepoSearchResult> {
         let key = key.trim();
         if let Some(cache) = &self.cache {
@@ -189,6 +199,26 @@ impl RepoQueryHandler {
         }
 
         Ok(result)
+    }
+    pub async fn list_tag_facets_by_active_values(
+        &self,
+        active_values: Vec<String>,
+        limit: Option<u32>,
+    ) -> AppResult<Vec<RepoTagFacet>> {
+        let mut dedup = BTreeSet::new();
+        let mut normalized = Vec::new();
+        for value in active_values {
+            let value = value.trim();
+            if value.is_empty() {
+                continue;
+            }
+            if dedup.insert(value.to_string()) {
+                normalized.push(value.to_string());
+            }
+        }
+        self.repo_tags
+            .list_tag_facets_by_active_values(&normalized, limit)
+            .await
     }
 
 }

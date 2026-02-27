@@ -43,10 +43,9 @@ pub fn FuzzySearch() -> Element {
         close_dialog();
         navigator.push(route);
     };
-    let mut go_tag = move |_label: String, _value: String| {
+    let mut go_tag = move |_label: String, value: String| {
         close_dialog();
-        // TODO: decide tag route target
-        navigator.push(Route::TagListView {});
+        navigator.push(Route::RepoListView { tags: Some(value) });
     };
     let page = Pagination {
         limit: Some(20),

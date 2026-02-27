@@ -36,7 +36,7 @@ pub fn Footer() -> Element {
                         h5 { class: "font-mono text-xs font-bold uppercase tracking-widest text-secondary-4", "Index" }
                         div { class: "space-y-2 text-sm text-secondary-5",
                             Link { class: "block hover:text-secondary-3 hover:underline", to: Route::HomeView {}, "Home" }
-                            Link { class: "block hover:text-secondary-3 hover:underline", to: Route::RepoListView {}, "Repo" }
+                            Link { class: "block hover:text-secondary-3 hover:underline", to: Route::RepoListView { tags: None }, "Repo" }
                             Link { class: "block hover:text-secondary-3 hover:underline", to: Route::TagListView {}, "Tag" }
                         }
                     }

@@ -7,6 +7,6 @@ use crate::components::views::repo::RepoList;
 pub use detail::RepoDetailView;
 
 #[component]
-pub fn RepoListView() -> Element {
-    rsx! { RepoList {} }
+pub fn RepoListView(tags: Option<String>) -> Element {
+    rsx! { RepoList { tags } }
 }
