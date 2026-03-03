@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, PartialEq, Eq, Default)]
 pub enum GridPadding {
     None,
     Sm,
@@ -103,19 +103,21 @@ pub fn GridWrapper(
     #[props(default = true)] is_dot_on: bool,
     #[props(default)] line_type: GridLineType,
     #[props(default)] background: GridBackground,
+    #[props(default)] bg_class: Option<String>,
     #[props(default = GridType::Default)] grid_type: GridType,
     #[props(default)] class: Option<String>,
     #[props(default = GridPadding::Md)] padding: GridPadding,
 ) -> Element {
     let wrapper_class = class.unwrap_or_default();
     let padding_class = padding.class();
-    let background_class = background.pattern.class();
+    let pattern_class = background.pattern.class();
+    let background_overlay_class = bg_class.unwrap_or_default();
     let gradient_class = background.gradient.class();
 
     rsx! {
         div { class: "relative w-full {wrapper_class}",
             if !background.is_empty() {
-                div { class: "pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]",
+                div { class: "pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] {background_overlay_class}",
                     if matches!(background.pattern, GridPattern::Slash) {
                         svg {
                             class: "absolute inset-0 h-full w-full select-none text-[color:var(--grid-hatch-color)] opacity-40",
@@ -192,7 +194,7 @@ pub fn GridWrapper(
                                 fill: "url(#dot-pattern)",
                             }
                         }
-                    } else if let Some(background_class) = background_class {
+                    } else if let Some(background_class) = pattern_class {
                         div { class: "absolute inset-0 {background_class}" }
                     }
                     if let Some(gradient_class) = gradient_class {
