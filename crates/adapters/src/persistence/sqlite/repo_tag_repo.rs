@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use app::app_error::AppResult;
 use app::common::pagination::{Page, Pagination};
 use app::repo::{build_avatar_urls, RepoTagFacet, RepoTagListItem, RepoTagRepo, RepoTagTopRepo, UNTAG_LABEL, UNTAG_VALUE};
@@ -62,49 +62,75 @@ impl SqliteRepoTagRepo {
 #[async_trait]
 impl RepoTagRepo for SqliteRepoTagRepo {
     async fn replace_repo_tags(&self, repo_id: &RepoId, tags: &[Tag]) -> AppResult<()> {
-        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        self.replace_repo_tags_bulk(&[(repo_id.clone(), tags.to_vec())]).await
+    }
 
-        sqlx::query("DELETE FROM repo_tag_map WHERE repo_id = ?")
-            .bind(repo_id.as_str())
-            .execute(&mut *tx)
-            .await
-            .map_err(db_err)?;
-
-        if tags.is_empty() {
-            tx.commit().await.map_err(db_err)?;
+    async fn replace_repo_tags_bulk(&self, items: &[(RepoId, Vec<Tag>)]) -> AppResult<()> {
+        if items.is_empty() {
             return Ok(());
         }
-
-        let mut tag_builder: QueryBuilder<Sqlite> =
-            QueryBuilder::new("INSERT INTO tags (id, label, value, description) ");
-        tag_builder.push_values(tags, |mut b, tag| {
-            let id = tag_id(tag.label.as_str(), tag.value.as_str());
-            b.push_bind(id)
-                .push_bind(tag.label.as_str())
-                .push_bind(tag.value.as_str())
-                .push_bind(tag.description.clone());
-        });
-        tag_builder
-            .push(" ON CONFLICT(id) DO UPDATE SET label = excluded.label, value = excluded.value, description = excluded.description");
-        tag_builder
+        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        let repo_ids = items.iter().map(|(repo_id, _)| repo_id).collect::<Vec<_>>();
+        let mut delete_builder: QueryBuilder<Sqlite> =
+            QueryBuilder::new("DELETE FROM repo_tag_map WHERE repo_id IN (");
+        let mut delete_separated = delete_builder.separated(", ");
+        for repo_id in &repo_ids {
+            delete_separated.push_bind(repo_id.as_str());
+        }
+        delete_separated.push_unseparated(")");
+        delete_builder
             .build()
             .execute(&mut *tx)
             .await
             .map_err(db_err)?;
 
-        let mut map_builder: QueryBuilder<Sqlite> =
-            QueryBuilder::new("INSERT INTO repo_tag_map (repo_id, tag_id, source) ");
-        map_builder.push_values(tags, |mut b, tag| {
-            let id = tag_id(tag.label.as_str(), tag.value.as_str());
-            b.push_bind(repo_id.as_str())
-                .push_bind(id)
-                .push_bind("manual");
-        });
-        map_builder
-            .build()
-            .execute(&mut *tx)
-            .await
-            .map_err(db_err)?;
+        let mut unique_tags = Vec::new();
+        let mut seen_tag_ids = HashSet::new();
+        let mut mappings: Vec<(String, String)> = Vec::new();
+        let mut seen_mappings = HashSet::new();
+        for (repo_id, tags) in items {
+            for tag in tags {
+                let id = tag_id(tag.label.as_str(), tag.value.as_str());
+                if seen_tag_ids.insert(id.clone()) {
+                    unique_tags.push((id.clone(), tag.clone()));
+                }
+                let mapping_key = format!("{}|{}", repo_id.as_str(), id);
+                if seen_mappings.insert(mapping_key) {
+                    mappings.push((repo_id.as_str().to_string(), id));
+                }
+            }
+        }
+
+        if !unique_tags.is_empty() {
+            let mut tag_builder: QueryBuilder<Sqlite> =
+                QueryBuilder::new("INSERT INTO tags (id, label, value, description) ");
+            tag_builder.push_values(&unique_tags, |mut b, (id, tag)| {
+                b.push_bind(id)
+                    .push_bind(tag.label.as_str())
+                    .push_bind(tag.value.as_str())
+                    .push_bind(tag.description.clone());
+            });
+            tag_builder.push(" ON CONFLICT(id) DO NOTHING");
+            tag_builder
+                .build()
+                .execute(&mut *tx)
+                .await
+                .map_err(db_err)?;
+        }
+
+        if !mappings.is_empty() {
+            let mut map_builder: QueryBuilder<Sqlite> =
+                QueryBuilder::new("INSERT INTO repo_tag_map (repo_id, tag_id, source) ");
+            map_builder.push_values(&mappings, |mut b, (repo_id, tag_id)| {
+                b.push_bind(repo_id).push_bind(tag_id).push_bind("manual");
+            });
+            map_builder.push(" ON CONFLICT(repo_id, tag_id) DO NOTHING");
+            map_builder
+                .build()
+                .execute(&mut *tx)
+                .await
+                .map_err(db_err)?;
+        }
 
         tx.commit().await.map_err(db_err)?;
         Ok(())
@@ -178,6 +204,33 @@ impl RepoTagRepo for SqliteRepoTagRepo {
             .await
             .map_err(db_err)?;
         Ok(rows.into_iter().map(RepoTagRow::into_pair).collect())
+    }
+
+    async fn find_tags_by_values(&self, values: &[String]) -> AppResult<Vec<Tag>> {
+        if values.is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut builder: QueryBuilder<Sqlite> =
+            QueryBuilder::new("SELECT id, label, value, description FROM tags WHERE value IN (");
+        let mut separated = builder.separated(", ");
+        for value in values {
+            separated.push_bind(value);
+        }
+        separated.push_unseparated(")");
+        let rows: Vec<TagRow> = builder
+            .build_query_as()
+            .fetch_all(&self.pool)
+            .await
+            .map_err(db_err)?;
+        let tags = rows
+            .into_iter()
+            .map(|row| Tag {
+                label: TagLabel::new(row.label),
+                value: TagValue::new(row.value),
+                description: row.description,
+            })
+            .collect();
+        Ok(tags)
     }
 
     async fn list_repo_ids_without_tags(&self, page: Pagination) -> AppResult<Page<RepoId>> {

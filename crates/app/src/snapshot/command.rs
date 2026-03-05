@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use futures::{stream, StreamExt, TryStreamExt};
@@ -7,7 +8,7 @@ use domain::{Repo, Snapshot, SnapshotRecorded};
 use crate::app_error::AppResult;
 use crate::common::pagination::Pagination;
 use crate::project::ProjectQueryHandler;
-use crate::repo::{GithubGateway, RepoCommandHandler};
+use crate::repo::{GithubGateway, RepoCommandHandler, RepoRepo};
 use crate::snapshot::{Clock, SnapshotEventHandler, SnapshotRepo};
 
 #[derive(Clone)]
@@ -65,6 +66,7 @@ pub struct IngestDailySnapshotsResult {
 pub struct IngestDailySnapshots {
     project_query: ProjectQueryHandler,
     repo_command: RepoCommandHandler,
+    repos: Arc<dyn RepoRepo>,
     snapshot_command: SnapshotCommandHandler,
     github: Arc<dyn GithubGateway>,
     clock: Arc<dyn Clock>,
@@ -74,6 +76,7 @@ impl IngestDailySnapshots {
     pub fn new(
         project_query: ProjectQueryHandler,
         repo_command: RepoCommandHandler,
+        repos: Arc<dyn RepoRepo>,
         snapshot_command: SnapshotCommandHandler,
         github: Arc<dyn GithubGateway>,
         clock: Arc<dyn Clock>,
@@ -81,6 +84,7 @@ impl IngestDailySnapshots {
         Self {
             project_query,
             repo_command,
+            repos,
             snapshot_command,
             github,
             clock,
@@ -89,14 +93,27 @@ impl IngestDailySnapshots {
 
     pub async fn execute(&self) -> AppResult<IngestDailySnapshotsResult> {
         const FETCH_CONCURRENCY: usize = 16;
-        let projects_page = self
-            .project_query
-            .list(Pagination {
-                limit: Some(10_000),
-                offset: Some(0),
-            })
-            .await?;
-        let projects = projects_page.items;
+        let mut projects = Vec::new();
+        let mut offset = 0u32;
+        loop {
+            let projects_page = self
+                .project_query
+                .list(Pagination {
+                    limit: Some(Pagination::MAX_LIMIT),
+                    offset: Some(offset),
+                })
+                .await?;
+            let total = projects_page.meta.total;
+            let page_items = projects_page.items;
+            if page_items.is_empty() {
+                break;
+            }
+            offset = offset.saturating_add(page_items.len() as u32);
+            projects.extend(page_items);
+            if offset as u64 >= total {
+                break;
+            }
+        }
 
         let today = self.clock.utc_today_ymd();
         let fetched_at = self.clock.utc_now_rfc3339();
@@ -162,6 +179,16 @@ impl IngestDailySnapshots {
         }
 
         self.repo_command.upsert_many(&repos).await?;
+        let repo_ids = repos.iter().map(|repo| repo.id.clone()).collect::<Vec<_>>();
+        let existing_repo_ids = self.repos.find_existing_ids(&repo_ids).await?;
+        let existing_repo_ids = existing_repo_ids
+            .into_iter()
+            .map(|id| id.as_str().to_string())
+            .collect::<HashSet<_>>();
+        let snapshots = snapshots
+            .into_iter()
+            .filter(|snapshot| existing_repo_ids.contains(snapshot.repo_id.as_str()))
+            .collect::<Vec<_>>();
         self.snapshot_command.insert_daily_many(&snapshots).await?;
 
         let repos_upserted = repos.len();

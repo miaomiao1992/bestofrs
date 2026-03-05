@@ -1,3 +1,6 @@
-// Domain events for the project context.
-//
-// Keep empty for now.
+use crate::Repo;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProjectCreated {
+    pub repo: Repo,
+}

@@ -57,8 +57,7 @@ impl ProjectRepo for SqliteProjectRepo {
         }
 
         let mut tx = self.pool.begin().await.map_err(db_err)?;
-
-        let mut builder: QueryBuilder<Sqlite> = QueryBuilder::new(
+        let mut insert_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
             r#"
             INSERT INTO projects (
               repo_id,
@@ -70,7 +69,7 @@ impl ProjectRepo for SqliteProjectRepo {
             "#,
         );
 
-        builder.push_values(items, |mut b, p| {
+        insert_builder.push_values(items, |mut b, p| {
             b.push_bind(p.id.as_str())
                 .push_bind(&p.name)
                 .push_bind(&p.slug)
@@ -83,25 +82,127 @@ impl ProjectRepo for SqliteProjectRepo {
                 .push("datetime('now')");
         });
 
-        builder.push(
+        insert_builder.push(
             r#"
-            ON CONFLICT(repo_id) DO UPDATE SET
-              name = excluded.name,
-              slug = excluded.slug,
-              description = excluded.description,
-              url = excluded.url,
-              avatar_url = excluded.avatar_url,
-              status = excluded.status,
-              logo = excluded.logo,
-              twitter = excluded.twitter,
-              updated_at = excluded.updated_at
+            ON CONFLICT DO NOTHING
             "#,
         );
 
-        builder.build().execute(&mut *tx).await.map_err(db_err)?;
+        insert_builder
+            .build()
+            .execute(&mut *tx)
+            .await
+            .map_err(db_err)?;
+
+        let mut update_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
+            r#"
+            WITH incoming(repo_id, name, slug, description, url, avatar_url, status, logo, twitter) AS (
+            "#,
+        );
+
+        update_builder.push_values(items, |mut b, p| {
+            b.push_bind(p.id.as_str())
+                .push_bind(&p.name)
+                .push_bind(&p.slug)
+                .push_bind(&p.description)
+                .push_bind(&p.url)
+                .push_bind(&p.avatar_url)
+                .push_bind(&p.status)
+                .push_bind(&p.logo)
+                .push_bind(&p.twitter);
+        });
+
+        update_builder.push(
+            r#"
+            )
+            UPDATE projects
+            SET
+              name = (SELECT i.name FROM incoming i WHERE i.repo_id = projects.repo_id),
+              slug = (SELECT i.slug FROM incoming i WHERE i.repo_id = projects.repo_id),
+              description = (SELECT i.description FROM incoming i WHERE i.repo_id = projects.repo_id),
+              url = (SELECT i.url FROM incoming i WHERE i.repo_id = projects.repo_id),
+              avatar_url = (SELECT i.avatar_url FROM incoming i WHERE i.repo_id = projects.repo_id),
+              status = (SELECT i.status FROM incoming i WHERE i.repo_id = projects.repo_id),
+              logo = (SELECT i.logo FROM incoming i WHERE i.repo_id = projects.repo_id),
+              twitter = (SELECT i.twitter FROM incoming i WHERE i.repo_id = projects.repo_id),
+              updated_at = datetime('now')
+            WHERE repo_id IN (
+              SELECT i.repo_id
+              FROM incoming i
+              WHERE NOT EXISTS (
+                SELECT 1
+                FROM projects p2
+                WHERE p2.repo_id != i.repo_id
+                  AND (p2.name = i.name OR p2.slug = i.slug)
+              )
+            )
+            "#,
+        );
+
+        update_builder
+            .build()
+            .execute(&mut *tx)
+            .await
+            .map_err(db_err)?;
 
         tx.commit().await.map_err(db_err)?;
 
+        Ok(())
+    }
+
+    async fn update_many(&self, items: &[Project]) -> AppResult<()> {
+        if items.is_empty() {
+            return Ok(());
+        }
+        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        let mut update_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
+            r#"
+            WITH incoming(repo_id, name, slug, description, url, avatar_url, status, logo, twitter) AS (
+            "#,
+        );
+        update_builder.push_values(items, |mut b, p| {
+            b.push_bind(p.id.as_str())
+                .push_bind(&p.name)
+                .push_bind(&p.slug)
+                .push_bind(&p.description)
+                .push_bind(&p.url)
+                .push_bind(&p.avatar_url)
+                .push_bind(&p.status)
+                .push_bind(&p.logo)
+                .push_bind(&p.twitter);
+        });
+        update_builder.push(
+            r#"
+            )
+            UPDATE projects
+            SET
+              name = (SELECT i.name FROM incoming i WHERE i.repo_id = projects.repo_id),
+              slug = (SELECT i.slug FROM incoming i WHERE i.repo_id = projects.repo_id),
+              description = (SELECT i.description FROM incoming i WHERE i.repo_id = projects.repo_id),
+              url = (SELECT i.url FROM incoming i WHERE i.repo_id = projects.repo_id),
+              avatar_url = (SELECT i.avatar_url FROM incoming i WHERE i.repo_id = projects.repo_id),
+              status = (SELECT i.status FROM incoming i WHERE i.repo_id = projects.repo_id),
+              logo = (SELECT i.logo FROM incoming i WHERE i.repo_id = projects.repo_id),
+              twitter = (SELECT i.twitter FROM incoming i WHERE i.repo_id = projects.repo_id),
+              updated_at = datetime('now')
+            WHERE repo_id IN (
+              SELECT i.repo_id
+              FROM incoming i
+              WHERE NOT EXISTS (
+                SELECT 1
+                FROM projects p2
+                WHERE p2.repo_id != i.repo_id
+                  AND (p2.name = i.name OR p2.slug = i.slug)
+              )
+            )
+            "#,
+        );
+        update_builder
+            .build()
+            .execute(&mut *tx)
+            .await
+            .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
         Ok(())
     }
 

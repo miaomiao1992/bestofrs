@@ -64,8 +64,7 @@ impl RepoRepo for SqliteRepoRepo {
         }
 
         let mut tx = self.pool.begin().await.map_err(db_err)?;
-
-        let mut builder: QueryBuilder<Sqlite> = QueryBuilder::new(
+        let mut insert_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
             r#"
             INSERT INTO repos (
               id, github_repo_id, full_name, description,
@@ -77,7 +76,7 @@ impl RepoRepo for SqliteRepoRepo {
             "#,
         );
 
-        builder.push_values(repos, |mut b, r| {
+        insert_builder.push_values(repos, |mut b, r| {
             b.push_bind(r.id.as_str())
                 .push_bind(r.github_repo_id)
                 .push_bind(&r.full_name)
@@ -93,25 +92,75 @@ impl RepoRepo for SqliteRepoRepo {
                 .push("datetime('now')");
         });
 
-        builder.push(
+        insert_builder.push(
             r#"
-            ON CONFLICT(id) DO UPDATE SET
-              github_repo_id = excluded.github_repo_id,
-              full_name = excluded.full_name,
-              description = excluded.description,
-              homepage_url = excluded.homepage_url,
-              avatar_url = excluded.avatar_url,
-              stars = excluded.stars,
-              forks = excluded.forks,
-              open_issues = excluded.open_issues,
-              watchers = excluded.watchers,
-              last_fetched_at = excluded.last_fetched_at,
-              etag = excluded.etag,
-              updated_at = excluded.updated_at
+            ON CONFLICT DO NOTHING
             "#,
         );
 
-        builder.build().execute(&mut *tx).await.map_err(db_err)?;
+        insert_builder
+            .build()
+            .execute(&mut *tx)
+            .await
+            .map_err(db_err)?;
+
+        let mut update_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
+            r#"
+            WITH incoming(id, github_repo_id, full_name, description, homepage_url, avatar_url, stars, forks, open_issues, watchers, last_fetched_at, etag) AS (
+            "#,
+        );
+
+        update_builder.push_values(repos, |mut b, r| {
+            b.push_bind(r.id.as_str())
+                .push_bind(r.github_repo_id)
+                .push_bind(&r.full_name)
+                .push_bind(&r.description)
+                .push_bind(&r.homepage_url)
+                .push_bind(&r.avatar_url)
+                .push_bind(r.stars)
+                .push_bind(r.forks)
+                .push_bind(r.open_issues)
+                .push_bind(r.watchers)
+                .push_bind(&r.last_fetched_at)
+                .push_bind(&r.etag);
+        });
+
+        update_builder.push(
+            r#"
+            )
+            UPDATE repos
+            SET
+              github_repo_id = (SELECT i.github_repo_id FROM incoming i WHERE i.id = repos.id),
+              full_name = (SELECT i.full_name FROM incoming i WHERE i.id = repos.id),
+              description = (SELECT i.description FROM incoming i WHERE i.id = repos.id),
+              homepage_url = (SELECT i.homepage_url FROM incoming i WHERE i.id = repos.id),
+              avatar_url = (SELECT i.avatar_url FROM incoming i WHERE i.id = repos.id),
+              stars = (SELECT i.stars FROM incoming i WHERE i.id = repos.id),
+              forks = (SELECT i.forks FROM incoming i WHERE i.id = repos.id),
+              open_issues = (SELECT i.open_issues FROM incoming i WHERE i.id = repos.id),
+              watchers = (SELECT i.watchers FROM incoming i WHERE i.id = repos.id),
+              last_fetched_at = (SELECT i.last_fetched_at FROM incoming i WHERE i.id = repos.id),
+              etag = (SELECT i.etag FROM incoming i WHERE i.id = repos.id),
+              updated_at = datetime('now')
+            WHERE id IN (
+              SELECT i.id
+              FROM incoming i
+              WHERE i.github_repo_id IS NULL
+                OR NOT EXISTS (
+                  SELECT 1
+                  FROM repos r2
+                  WHERE r2.id != i.id
+                    AND r2.github_repo_id = i.github_repo_id
+                )
+            )
+            "#,
+        );
+
+        update_builder
+            .build()
+            .execute(&mut *tx)
+            .await
+            .map_err(db_err)?;
 
         tx.commit().await.map_err(db_err)?;
 
@@ -138,6 +187,36 @@ impl RepoRepo for SqliteRepoRepo {
         Ok(row.map(Into::into))
     }
 
+    async fn find_existing_ids(&self, ids: &[RepoId]) -> AppResult<Vec<RepoId>> {
+        if ids.is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(
+            r#"
+            SELECT id
+            FROM repos
+            WHERE id IN (
+            "#,
+        );
+        let mut separated = qb.separated(", ");
+        for id in ids {
+            separated.push_bind(id.as_str());
+        }
+        qb.push(
+            r#"
+            )
+            "#,
+        );
+        let rows: Vec<(String,)> = qb
+            .build_query_as()
+            .fetch_all(&self.pool)
+            .await
+            .map_err(db_err)?;
+        Ok(rows
+            .into_iter()
+            .map(|(id,)| RepoId::new_unchecked(id))
+            .collect())
+    }
     async fn list(&self, page: Pagination) -> AppResult<Page<Repo>> {
         let limit = page.limit();
         let offset = page.offset();

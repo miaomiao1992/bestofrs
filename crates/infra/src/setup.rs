@@ -4,7 +4,7 @@ use adapters::persistence;
 use app::app_error::{AppError, AppResult};
 use app::auth::{OAuth2AuthorizationCodePkcePort, OAuth2ResourceOwnerPort};
 use app::prelude::{
-    AuthCommandHandler, IngestDailySnapshots, ProjectCommandHandler, ProjectQueryHandler,
+    AuthCommandHandler, IngestDailySnapshots, ProjectCommandHandler, ProjectEventHandler, ProjectQueryHandler,
     RepoCommandHandler, RepoQueryHandler, SnapshotCommandHandler, SnapshotEventHandler,
     SnapshotQueryHandler,
 };
@@ -55,16 +55,24 @@ pub async fn init_app_container() -> AppResult<AppContainer> {
 
     let repos = persistence::build_repos_by_url(&config.database.url).await?;
 
-    let project = ProjectState {
-        query: ProjectQueryHandler::new(repos.project.clone()),
-        command: ProjectCommandHandler::new(repos.project.clone()),
-    };
 
     let github = Arc::new(GithubClient::new(Some(config.server.github_token.clone()))?);
 
     let repo = RepoState {
         query: RepoQueryHandler::new(repos.repo.clone(), repos.repo_tag.clone(), github.clone()),
         command: RepoCommandHandler::new(repos.repo.clone(), repos.repo_tag.clone()),
+    };
+
+    let project_event_handler = ProjectEventHandler::new(repo.command.clone());
+    let project = ProjectState {
+        query: ProjectQueryHandler::new(repos.project.clone()),
+        command: ProjectCommandHandler::new(
+            repos.project.clone(),
+            repos.repo.clone(),
+            repos.repo_tag.clone(),
+            github.clone(),
+            project_event_handler,
+        ),
     };
 
     let snapshot_query =
@@ -96,6 +104,7 @@ pub async fn init_app_container() -> AppResult<AppContainer> {
     let ingest_daily_snapshots = IngestDailySnapshots::new(
         project.query.clone(),
         repo.command.clone(),
+        repos.repo.clone(),
         snapshot.command.clone(),
         github,
         clock,

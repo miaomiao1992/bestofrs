@@ -13,6 +13,8 @@ pub struct ProjectDto {
     pub status: Option<String>,
     pub logo: Option<String>,
     pub twitter: Option<String>,
+    #[serde(default)]
+    pub tags: Vec<String>,
 }
 
 impl From<Project> for ProjectDto {
@@ -30,6 +32,7 @@ impl From<Project> for ProjectDto {
             status: value.status,
             logo: value.logo,
             twitter: value.twitter,
+            tags: Vec::new(),
         }
     }
 }
@@ -48,6 +51,8 @@ pub struct ProjectImportItem {
     pub status: Option<String>,
     pub logo: Option<String>,
     pub twitter: Option<String>,
+    #[serde(default)]
+    pub tags: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

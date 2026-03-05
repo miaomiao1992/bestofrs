@@ -1,17 +1,17 @@
-mod ingest_daily_snapshots_control;
-mod project_management;
-mod tags_management;
+mod job;
+mod projects;
+mod tags;
 use dioxus::prelude::*;
 use crate::components::common::IOCell;
-pub use ingest_daily_snapshots_control::IngestDailySnapshotsControl;
-pub use project_management::ProjectManagement;
-pub use tags_management::TagsManagement;
+pub use job::Job;
+pub use projects::Projects;
+pub use tags::Tags;
 
 #[component]
 pub fn AdminProjects() -> Element {
     rsx! {
         document::Link { rel: "stylesheet", href: asset!("./style.css") }
-        IOCell { ProjectManagement {} }
+        IOCell { Projects {} }
     }
 }
 
@@ -19,7 +19,7 @@ pub fn AdminProjects() -> Element {
 pub fn AdminTags() -> Element {
     rsx! {
         document::Link { rel: "stylesheet", href: asset!("./style.css") }
-        IOCell { TagsManagement {} }
+        IOCell { Tags {} }
     }
 }
 
@@ -27,6 +27,6 @@ pub fn AdminTags() -> Element {
 pub fn AdminJob() -> Element {
     rsx! {
         document::Link { rel: "stylesheet", href: asset!("./style.css") }
-        IOCell { IngestDailySnapshotsControl {} }
+        IOCell { Job {} }
     }
 }

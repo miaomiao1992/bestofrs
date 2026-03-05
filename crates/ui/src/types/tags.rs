@@ -18,6 +18,25 @@ impl From<Tag> for TagDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ImportTagsResult {
+    pub total: usize,
+    pub upserted: usize,
+    pub skipped_invalid: usize,
+    pub failed_upsert: usize,
+    #[serde(default)]
+    pub invalid_examples: Vec<String>,
+    #[serde(default)]
+    pub error_examples: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TagImportItem {
+    pub label: String,
+    pub value: String,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TagTopRepoDto {
     pub repo_id: String,
     pub avatar_urls: Vec<String>,

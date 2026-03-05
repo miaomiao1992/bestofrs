@@ -53,6 +53,7 @@ pub async fn import_projects(
                 status: it.status,
                 logo: it.logo,
                 twitter: it.twitter,
+                tags: it.tags,
             })
             .collect(),
     };
@@ -74,10 +75,50 @@ pub async fn import_projects(
     })
 }
 
+#[post("/api/projects/update", state: State)]
+pub async fn update_projects(
+    items: Vec<ProjectImportItem>,
+) -> ServerFnResult<ImportProjectsResult> {
+    let app_state = state.0;
+    let cmd = ImportProjectsCommand {
+        items: items
+            .into_iter()
+            .map(|it| ImportProjectCommand {
+                repo_id: it.repo_id,
+                name: it.name,
+                slug: it.slug,
+                description: it.description,
+                url: it.url,
+                avatar_url: it.avatar_url,
+                status: it.status,
+                logo: it.logo,
+                twitter: it.twitter,
+                tags: None,
+            })
+            .collect(),
+    };
+    let report = app_state
+        .project
+        .command
+        .update_projects(cmd)
+        .await
+        .map_err(api_error)?;
+    Ok(ImportProjectsResult {
+        total: report.total,
+        upserted: report.upserted,
+        skipped_invalid: report.skipped_invalid,
+        failed_upsert: report.failed_upsert,
+        invalid_examples: report.invalid_examples,
+        error_examples: report.error_examples,
+    })
+}
+
 #[derive(Debug, Clone, Deserialize)]
 struct ProjectSeedItem {
     name: String,
     full_name: String,
+    #[serde(default)]
+    tags: Option<Vec<String>>,
 }
 
 #[post("/api/projects/import_json", state: State)]
@@ -104,6 +145,7 @@ pub async fn import_projects_json(json_text: String) -> ServerFnResult<ImportPro
                 status: None,
                 logo: None,
                 twitter: None,
+                tags: it.tags,
             })
             .collect(),
     };

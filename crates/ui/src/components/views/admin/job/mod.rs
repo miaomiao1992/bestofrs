@@ -4,7 +4,7 @@ use crate::IO::admin::run_ingest_daily_snapshots;
 use app::prelude::IngestDailySnapshotsResult;
 
 #[component]
-pub fn IngestDailySnapshotsControl() -> Element {
+pub fn Job() -> Element {
     let mut run_nonce = use_signal(|| 0u32);
 
     let run_result = use_server_future(move || {

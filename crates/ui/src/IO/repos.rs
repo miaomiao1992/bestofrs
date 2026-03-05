@@ -5,12 +5,14 @@ use crate::types::repos::{BulkUpdateRepoTagResultDto, RepoDto, RepoReadmeDto};
 use crate::types::search::SearchResultDto;
 use crate::types::snapshot_deltas::SnapshotDeltaDto;
 use crate::types::snapshots::SnapshotDto;
-use crate::types::tags::{TagDto, TagFacetDto, TagListItemDto};
+use crate::types::tags::{ImportTagsResult, TagDto, TagFacetDto, TagImportItem, TagListItemDto};
 
 use app::prelude::{Page, Pagination};
 use app::repo::{
-    BulkTagUpdateAction, BulkUpdateRepoTagCommand, ReplaceRepoTagsCommand, TagInput,
+    BulkTagUpdateAction, BulkUpdateRepoTagCommand, ImportTagCommand, ImportTagsCommand,
+    ReplaceRepoTagsCommand, TagInput,
 };
+use serde::Deserialize;
 
 #[post("/api/repos", state: State)]
 pub async fn list_repos(page: Pagination) -> ServerFnResult<Page<RepoDto>> {
@@ -90,6 +92,82 @@ pub async fn replace_repo_tags(
         .await
         .map_err(api_error)?;
     Ok(())
+}
+
+#[post("/api/tags/import", state: State)]
+pub async fn import_tags(items: Vec<TagImportItem>) -> ServerFnResult<ImportTagsResult> {
+
+    let app_state = state.0;
+    let cmd = ImportTagsCommand {
+        items: items
+            .into_iter()
+            .map(|it| ImportTagCommand {
+                label: it.label,
+                value: it.value,
+                description: it.description,
+            })
+            .collect(),
+    };
+    let report = app_state
+        .repo
+        .command
+        .import_tags(cmd)
+        .await
+        .map_err(api_error)?;
+
+    Ok(ImportTagsResult {
+        total: report.total,
+        upserted: report.upserted,
+        skipped_invalid: report.skipped_invalid,
+        failed_upsert: report.failed_upsert,
+        invalid_examples: report.invalid_examples,
+        error_examples: report.error_examples,
+    })
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct TagSeedItem {
+    label: String,
+    value: String,
+    #[serde(default)]
+    description: Option<String>,
+}
+
+#[post("/api/tags/import_json", state: State)]
+pub async fn import_tags_json(json_text: String) -> ServerFnResult<ImportTagsResult> {
+    let app_state = state.0;
+    let items: Vec<TagSeedItem> =
+        serde_json::from_str(&json_text).map_err(|e| ServerFnError::ServerError {
+            code: 400,
+            message: format!("invalid json: {e}"),
+            details: None,
+        })?;
+
+    let cmd = ImportTagsCommand {
+        items: items
+            .into_iter()
+            .map(|it| ImportTagCommand {
+                label: it.label,
+                value: it.value,
+                description: it.description,
+            })
+            .collect(),
+    };
+    let report = app_state
+        .repo
+        .command
+        .import_tags(cmd)
+        .await
+        .map_err(api_error)?;
+
+    Ok(ImportTagsResult {
+        total: report.total,
+        upserted: report.upserted,
+        skipped_invalid: report.skipped_invalid,
+        failed_upsert: report.failed_upsert,
+        invalid_examples: report.invalid_examples,
+        error_examples: report.error_examples,
+    })
 }
 
 #[post("/api/repos/tags/bulk_update", state: State)]

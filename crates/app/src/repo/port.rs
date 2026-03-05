@@ -11,6 +11,7 @@ pub trait RepoRepo: Send + Sync {
     async fn upsert(&self, repo: &Repo) -> AppResult<()>;
     async fn upsert_many(&self, repos: &[Repo]) -> AppResult<()>;
     async fn get(&self, id: &RepoId) -> AppResult<Option<Repo>>;
+    async fn find_existing_ids(&self, ids: &[RepoId]) -> AppResult<Vec<RepoId>>;
     async fn list(&self, page: Pagination) -> AppResult<Page<Repo>>;
     async fn search_by_key(&self, key: &str, page: Pagination) -> AppResult<Page<Repo>>;
 }
@@ -39,10 +40,12 @@ pub struct RepoTagListItem {
 #[async_trait]
 pub trait RepoTagRepo: Send + Sync {
     async fn replace_repo_tags(&self, repo_id: &RepoId, tags: &[Tag]) -> AppResult<()>;
+    async fn replace_repo_tags_bulk(&self, items: &[(RepoId, Vec<Tag>)]) -> AppResult<()>;
     async fn upsert_tag(&self, tag: &Tag) -> AppResult<()>;
     async fn update_tag(&self, tag: &Tag) -> AppResult<()>;
     async fn delete_tag(&self, tag: &Tag) -> AppResult<()>;
     async fn list_by_repo_ids(&self, repo_ids: &[RepoId]) -> AppResult<Vec<(RepoId, Tag)>>;
+    async fn find_tags_by_values(&self, values: &[String]) -> AppResult<Vec<Tag>>;
     async fn list_repo_ids_without_tags(&self, page: Pagination) -> AppResult<Page<RepoId>>;
     async fn list_repo_ids_by_label(
         &self,

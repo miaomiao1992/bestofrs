@@ -19,6 +19,41 @@ pub struct TagInput {
 }
 
 #[derive(Debug, Clone)]
+pub struct ImportTagCommand {
+    pub label: String,
+    pub value: String,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ImportTagsCommand {
+    pub items: Vec<ImportTagCommand>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImportTagsReport {
+    pub total: usize,
+    pub upserted: usize,
+    pub skipped_invalid: usize,
+    pub failed_upsert: usize,
+    pub invalid_examples: Vec<String>,
+    pub error_examples: Vec<String>,
+}
+
+impl ImportTagsReport {
+    fn new(total: usize) -> Self {
+        Self {
+            total,
+            upserted: 0,
+            skipped_invalid: 0,
+            failed_upsert: 0,
+            invalid_examples: Vec::new(),
+            error_examples: Vec::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct ReplaceRepoTagsCommand {
     pub repo_id: String,
     pub tags: Vec<TagInput>,
@@ -124,6 +159,57 @@ impl RepoCommandHandler {
             ));
         }
         self.repo_tags.delete_tag(&tag).await
+    }
+
+    pub async fn import_tags(&self, cmd: ImportTagsCommand) -> AppResult<ImportTagsReport> {
+        const MAX_INVALID_EXAMPLES: usize = 20;
+        const MAX_ERROR_EXAMPLES: usize = 20;
+
+        let mut report = ImportTagsReport::new(cmd.items.len());
+        for item in cmd.items {
+            let label = item.label.trim().to_string();
+            let value = item.value.trim().to_string();
+            if label.is_empty() || value.is_empty() {
+                report.skipped_invalid += 1;
+                if report.invalid_examples.len() < MAX_INVALID_EXAMPLES {
+                    report
+                        .invalid_examples
+                        .push(format!("{}:{}", item.label, item.value));
+                }
+                continue;
+            }
+
+            let create_result = self
+                .create_tag(TagInput {
+                    label: label.clone(),
+                    value: value.clone(),
+                })
+                .await;
+            if let Err(err) = create_result {
+                report.failed_upsert += 1;
+                if report.error_examples.len() < MAX_ERROR_EXAMPLES {
+                    report.error_examples.push(err.to_string());
+                }
+                continue;
+            }
+
+            let description = item
+                .description
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty());
+            let update_result = self.update_tag(label, value, description).await;
+            if let Err(err) = update_result {
+                report.failed_upsert += 1;
+                if report.error_examples.len() < MAX_ERROR_EXAMPLES {
+                    report.error_examples.push(err.to_string());
+                }
+                continue;
+            }
+
+            report.upserted += 1;
+        }
+
+        Ok(report)
     }
 
     pub async fn bulk_update_tag_for_repos(
