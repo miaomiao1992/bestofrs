@@ -31,8 +31,12 @@ pub enum Route {
             #[route("/")]
             HomeView {},
             #[nest("/repo")]
-                #[route("/?:tags")]
-                RepoListView { tags: Option<String> },
+                #[route("/?:tags&:metric&:range")]
+                RepoListView {
+                    tags: Option<String>,
+                    metric: Option<String>,
+                    range: Option<String>,
+                },
                 #[route("/:owner/:name")]
                 RepoDetailView { owner: String, name: String },
             #[end_nest]

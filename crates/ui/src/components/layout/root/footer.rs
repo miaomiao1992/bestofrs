@@ -40,7 +40,11 @@ pub fn Footer() -> Element {
                             }
                             Link {
                                 class: "block hover:text-secondary-3 hover:underline",
-                                to: Route::RepoListView { tags: None },
+                                to: Route::RepoListView {
+                                    tags: None,
+                                    metric: None,
+                                    range: None,
+                                },
                                 "Repo"
                             }
                             Link {

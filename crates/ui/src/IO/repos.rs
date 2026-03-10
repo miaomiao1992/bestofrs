@@ -10,7 +10,8 @@ use crate::types::tags::{ImportTagsResult, TagDto, TagFacetDto, TagImportItem, T
 use app::prelude::{Page, Pagination};
 use app::repo::{
     BulkTagUpdateAction, BulkUpdateRepoTagCommand, ImportTagCommand, ImportTagsCommand,
-    ReplaceRepoTagsCommand, TagInput,
+    ReplaceRepoTagsCommand, RepoListQuery, RepoRankMetric, RepoRankTimeRange, RepoRankQuery,
+    TagInput,
 };
 use serde::Deserialize;
 
@@ -21,10 +22,42 @@ pub async fn list_repos(page: Pagination) -> ServerFnResult<Page<RepoDto>> {
     let repos_page = app_state
         .repo
         .query
-        .list_with_tags(page)
+        .list_with_tags(page, None)
         .await
         .map_err(api_error)?;
 
+    Ok(repos_page.map(RepoDto::from))
+}
+#[post("/api/repos/query", state: State)]
+pub async fn list_repos_with_query(query: RepoListQuery) -> ServerFnResult<Page<RepoDto>> {
+    let app_state = state.0;
+    let tags = query
+        .tags
+        .as_ref()
+        .filter(|tags| !tags.is_empty())
+        .cloned();
+    let is_default_rank = query.metric == Some(RepoRankMetric::Star)
+        && query.range == Some(RepoRankTimeRange::Weekly);
+
+    let repos_page = if let Some(tags) = tags {
+        app_state
+            .repo
+            .query
+            .list_with_tags(query.page, Some(tags))
+            .await
+            .map_err(api_error)?
+    } else if (query.metric.is_none() && query.range.is_none()) || is_default_rank {
+        return list_repos(query.page).await;
+    } else if let (Some(metric), Some(range)) = (query.metric, query.range) {
+        app_state
+            .repo
+            .query
+            .list_ranked_with_tags(RepoRankQuery { metric, range }, query.page)
+            .await
+            .map_err(api_error)?
+    } else {
+        return list_repos(query.page).await;
+    };
     Ok(repos_page.map(RepoDto::from))
 }
 

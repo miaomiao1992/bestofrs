@@ -6,7 +6,12 @@ use crate::types::tags::TagListItemDto;
 use super::mini_repo_card::MiniRepoCard;
 
 #[component]
-pub fn TagRow(tag: TagListItemDto, index: usize, current_page: u32, page_size: u32) -> Element {
+pub fn TagRow(
+    tag: TagListItemDto,
+    index: usize,
+    current_page: u32,
+    page_size: u32,
+) -> Element {
     let outlined = tag
         .label
         .split(':')
@@ -17,12 +22,16 @@ pub fn TagRow(tag: TagListItemDto, index: usize, current_page: u32, page_size: u
         .description
         .clone()
         .unwrap_or_else(|| "System classification pending.".to_string());
+
     let rank = (current_page.saturating_sub(1) as usize) * page_size as usize + index + 1;
     let rank_text = format!("{:03}", rank);
     let population = format!("{:03}", tag.repos_total);
 
     rsx! {
-        article { class: "group relative overflow-hidden px-8 py-12 last:border-0",
+        article {
+            id: "{tag.value}",
+            class: "group relative overflow-hidden px-8 py-12 last:border-0",
+            style: "scroll-margin-top: 80px;",
             div {
                 class: "relative z-0 mb-[-30px] font-mono whitespace-nowrap text-5xl font-bold leading-none tracking-wide opacity-50 md:mb-[-60px] md:text-[120px]",
                 style: "-webkit-text-stroke: 2px color-mix(in oklab, var(--secondary-color) 22%, transparent); color: transparent;",
@@ -79,7 +88,11 @@ pub fn TagRow(tag: TagListItemDto, index: usize, current_page: u32, page_size: u
                         Link {
                             class: "ml-auto self-start border px-3 py-1 text-xs font-mono tracking-wider transition-colors",
                             style: "border-color: var(--grid-accent); color: var(--grid-accent); background-color: color-mix(in oklab, var(--grid-accent) 10%, transparent);",
-                            to: Route::RepoListView { tags: Some(tag.value.clone()) },
+                            to: Route::RepoListView {
+                                tags: Some(tag.value.clone()),
+                                metric: None,
+                                range: None,
+                            },
                             "OPEN"
                         }
                     }

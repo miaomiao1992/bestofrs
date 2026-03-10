@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 use std::collections::BTreeSet;
 
-use crate::components::button::{Button, ButtonVariant};
 use crate::components::common::{
     CommonPagination, GradientDirection, GridBackground, GridPadding, GridPattern,
     GridSlashTransition, GridType, GridWrapper, IOCell, RepoManuscriptCard,
@@ -10,19 +9,63 @@ use crate::components::select::{
     Select, SelectGroup, SelectGroupLabel, SelectItemIndicator, SelectList, SelectOption,
     SelectTrigger, SelectValue,
 };
-use crate::types::repos::RepoDto;
-use crate::IO::repos::{list_repo_tag_facets, list_repos};
+use crate::IO::repos::{list_repo_tag_facets, list_repos_with_query};
 use app::prelude::Pagination as PageQuery;
-#[derive(Clone, Copy, PartialEq, Eq)]
+use app::repo::{RepoListQuery, RepoRankMetric, RepoRankTimeRange};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum RepoListHeroType {
-    WeeklyCurated,
-    TagSearchResult,
+    AllProjects,
+    SearchResult,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum FilterType {
+    Total,
+    Daily,
+    Weekly,
+    Monthly,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SortType {
+    Star,
+    Fork,
+    Issue,
+    AddTime,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct ListSummary {
+    from: u64,
+    to: u64,
+    total: u64,
+}
+
+impl ListSummary {
+    fn empty() -> Self {
+        Self {
+            from: 0,
+            to: 0,
+            total: 0,
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Eq)]
 struct TagAdviceItem {
     key: String,
     count: u64,
+}
+
+#[derive(Clone, Copy)]
+struct RepoListContext {
+    active_tags: Signal<Vec<String>>,
+    filter_type: Signal<FilterType>,
+    sort_type: Signal<SortType>,
+    page_size: Signal<u32>,
+    current_page: Signal<u32>,
+    summary: Signal<ListSummary>,
 }
 
 fn parse_tags_query(tags: Option<&str>) -> Vec<String> {
@@ -42,12 +85,103 @@ fn parse_tags_query(tags: Option<&str>) -> Vec<String> {
     result
 }
 
-fn repo_contains_all_tags(repo: &RepoDto, active_tags: &[String]) -> bool {
-    active_tags
-        .iter()
-        .all(|active| repo.tags.iter().any(|tag| tag.value == *active))
+fn active_tags_to_query(active_tags: &[String]) -> Option<String> {
+    if active_tags.is_empty() {
+        None
+    } else {
+        Some(active_tags.join(","))
+    }
 }
 
+fn parse_filter_type(range: Option<&str>, metric: Option<&str>) -> FilterType {
+    let metric_value = metric.unwrap_or_default().trim().to_lowercase();
+    if metric_value == "recent" || metric_value == "add_time" || metric_value == "latest" {
+        return FilterType::Total;
+    }
+    match range.unwrap_or_default().trim().to_lowercase().as_str() {
+        "daily" | "day" => FilterType::Daily,
+        "monthly" | "month" => FilterType::Monthly,
+        "weekly" | "week" => FilterType::Weekly,
+        _ => FilterType::Total,
+    }
+}
+
+fn parse_sort_type(metric: Option<&str>) -> SortType {
+    match metric.unwrap_or_default().trim().to_lowercase().as_str() {
+        "fork" | "forks" => SortType::Fork,
+        "issue" | "issues" => SortType::Issue,
+        "recent" | "add_time" | "latest" => SortType::AddTime,
+        _ => SortType::Star,
+    }
+}
+
+fn filter_label(filter: FilterType) -> &'static str {
+    match filter {
+        FilterType::Total => "Total",
+        FilterType::Daily => "Daily",
+        FilterType::Weekly => "Weekly",
+        FilterType::Monthly => "Monthly",
+    }
+}
+
+fn sort_label(sort: SortType) -> &'static str {
+    match sort {
+        SortType::Star => "Stars",
+        SortType::Fork => "Forks",
+        SortType::Issue => "Issues",
+        SortType::AddTime => "Update Time",
+    }
+}
+
+fn sort_metric(sort: SortType) -> RepoRankMetric {
+    match sort {
+        SortType::Star => RepoRankMetric::Star,
+        SortType::Fork => RepoRankMetric::Fork,
+        SortType::Issue => RepoRankMetric::Issue,
+        SortType::AddTime => RepoRankMetric::Recent,
+    }
+}
+
+fn filter_range(filter: FilterType) -> RepoRankTimeRange {
+    match filter {
+        FilterType::Daily => RepoRankTimeRange::Daily,
+        FilterType::Weekly => RepoRankTimeRange::Weekly,
+        FilterType::Monthly => RepoRankTimeRange::Monthly,
+        FilterType::Total => RepoRankTimeRange::Weekly,
+    }
+}
+
+fn sort_metric_query(sort: SortType) -> &'static str {
+    match sort {
+        SortType::Star => "star",
+        SortType::Fork => "fork",
+        SortType::Issue => "issue",
+        SortType::AddTime => "recent",
+    }
+}
+
+fn filter_range_query(filter: FilterType) -> &'static str {
+    match filter {
+        FilterType::Daily => "daily",
+        FilterType::Weekly => "weekly",
+        FilterType::Monthly => "monthly",
+        FilterType::Total => "weekly",
+    }
+}
+
+fn query_params_from_filter_sort(
+    filter: FilterType,
+    sort: SortType,
+) -> (Option<String>, Option<String>) {
+    if filter == FilterType::Total && sort == SortType::Star {
+        (None, None)
+    } else {
+        (
+            Some(sort_metric_query(sort).to_string()),
+            Some(filter_range_query(filter).to_string()),
+        )
+    }
+}
 
 fn append_tag_query(active_tags: &[String], append: &str) -> String {
     let mut next = active_tags.to_vec();
@@ -70,17 +204,33 @@ fn remove_tag_query(active_tags: &[String], remove: &str) -> Option<String> {
     }
 }
 
+
 #[component]
-pub fn RepoList(tags: Option<String>) -> Element {
-    let mut page_size = use_signal(|| 50u32);
-    let mut current_page = use_signal(|| 1u32);
-    let active_tags = parse_tags_query(tags.as_deref());
-    let hero_type = if active_tags.is_empty() {
-        RepoListHeroType::WeeklyCurated
-    } else {
-        RepoListHeroType::TagSearchResult
-    };
-    let route_key = tags.clone().unwrap_or_default();
+pub fn RepoList(tags: Option<String>, metric: Option<String>, range: Option<String>) -> Element {
+    let active_tags = use_signal(|| parse_tags_query(tags.as_deref()));
+    let filter_type = use_signal(|| parse_filter_type(range.as_deref(), metric.as_deref()));
+    let sort_type = use_signal(|| parse_sort_type(metric.as_deref()));
+    let page_size = use_signal(|| 50u32);
+    let current_page = use_signal(|| 1u32);
+    let summary = use_signal(ListSummary::empty);
+
+    use_context_provider(|| RepoListContext {
+        active_tags,
+        filter_type,
+        sort_type,
+        page_size,
+        current_page,
+        summary,
+    });
+
+    let route_key = format!(
+        "{}|{}|{}|{:?}|{:?}",
+        tags.clone().unwrap_or_default(),
+        metric.clone().unwrap_or_default(),
+        range.clone().unwrap_or_default(),
+        filter_type(),
+        sort_type()
+    );
 
     rsx! {
         div { class: "space-y-0",
@@ -92,121 +242,20 @@ pub fn RepoList(tags: Option<String>) -> Element {
                     pattern: GridPattern::Grid,
                     gradient: GradientDirection::ToBottom,
                 },
-                section { class: "relative overflow-hidden bg-transparent h-120",
-                    div { class: "relative z-10 space-y-8",
-                        div { class: "inline-flex items-center gap-2 border border-primary-6 bg-transparent px-2 py-1 font-mono text-xs font-semibold tracking-wide text-secondary-5",
-                            if hero_type == RepoListHeroType::TagSearchResult {
-                                "SEARCH / TAG_FILTER"
-                            } else {
-                                "VOL. 2026 / ISSUE #01"
-                            }
-                        }
-                        div { class: "flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between",
-                            div { class: "max-w-3xl space-y-4",
-                                if hero_type == RepoListHeroType::TagSearchResult {
-                                    h1 { class: "text-4xl font-bold tracking-tight text-secondary-2 md:text-6xl",
-                                        "Search "
-                                        span { class: "text-secondary-6", "Result" }
-                                    }
-                                    p { class: "border-l-2 border-primary-6 pl-5 text-base leading-relaxed text-secondary-4",
-                                        "Apply intersection filtering by active tags. Click advice tags to continue narrowing down results."
-                                    }
-                                } else {
-                                    h1 { class: "text-4xl font-bold tracking-tight text-secondary-2 md:text-6xl",
-                                        "Weekly "
-                                        span { class: "text-secondary-6", "Curated" }
-                                        " List"
-                                    }
-                                    p { class: "border-l-2 border-primary-6 pl-5 text-base leading-relaxed text-secondary-4",
-                                        "Observing the fastest growing projects in the Rust ecosystem. Data aggregated from GitHub activity and filtered for quality."
-                                    }
-                                }
-                            }
-                            div { class: "flex flex-wrap items-center gap-3",
-                                Button {
-                                    variant: ButtonVariant::Outline,
-                                    class: "px-5 py-2.5 text-sm",
-                                    "Filter"
-                                }
-                                Button {
-                                    variant: ButtonVariant::Primary,
-                                    class: "px-5 py-2.5 text-sm",
-                                    "Sort: Popular"
-                                }
-                            }
+                section { class: "relative bg-transparent",
+                    div { class: "relative z-10 flex flex-col gap-2",
+                        RepoMeta {}
+                        div { class: "flex flex-col gap-6 pt-6",
+                            RepoListTags { key: "{route_key}" }
+                            RepoListHandler {}
                         }
                     }
-                    div { class: "flex flex-wrap items-center justify-between gap-3 border-b border-dashed border-primary-6 pb-4",
-                        div { class: "text-sm font-mono tracking-wider text-secondary-5",
-                            "INDEX / REPOSITORIES"
-                        }
-                        div { class: "flex items-center gap-3",
-                            span { class: "text-sm font-medium text-secondary-5", "page size" }
-                            Select::<u32> {
-                                value: Some(page_size()),
-                                placeholder: "page size",
-                                on_value_change: move |v: Option<u32>| {
-                                    if let Some(v) = v {
-                                        page_size.set(v);
-                                        current_page.set(1);
-                                    }
-                                },
-                                SelectTrigger {
-                                    aria_label: "Select page size",
-                                    style: "min-width: 7rem;",
-                                    SelectValue {}
-                                }
-                                SelectList { aria_label: "Page size options",
-                                    SelectGroup {
-                                        SelectGroupLabel { "Page size" }
-                                        SelectOption::<u32> {
-                                            index: 0usize,
-                                            value: 20u32,
-                                            text_value: Some("20".to_string()),
-                                            "20"
-                                            SelectItemIndicator {}
-                                        }
-                                        SelectOption::<u32> {
-                                            index: 1usize,
-                                            value: 50u32,
-                                            text_value: Some("50".to_string()),
-                                            "50"
-                                            SelectItemIndicator {}
-                                        }
-                                        SelectOption::<u32> {
-                                            index: 2usize,
-                                            value: 100u32,
-                                            text_value: Some("100".to_string()),
-                                            "100"
-                                            SelectItemIndicator {}
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if hero_type == RepoListHeroType::TagSearchResult {
-                        TagSearchGuide {
-                            key: "{route_key}",
-                            active_tags: active_tags.clone(),
-                        }
-                    }
-
                 }
             }
-
-            GridSlashTransition {  }
-
-            GridWrapper {
-                padding: GridPadding::Sm,
+            GridSlashTransition {}
+            GridWrapper { padding: GridPadding::Sm,
                 section { class: "space-y-6 bg-primary-1",
-                    IOCell {
-                        RepoListIO {
-                            page_size,
-                            current_page,
-                            active_tags,
-                        }
-                    }
+                    IOCell { RepoListIO {} }
                 }
             }
         }
@@ -214,16 +263,45 @@ pub fn RepoList(tags: Option<String>) -> Element {
 }
 
 #[component]
-fn TagSearchGuide(active_tags: Vec<String>) -> Element {
+fn RepoMeta() -> Element {
+    let ctx = use_context::<RepoListContext>();
+    let hero_type = if (ctx.active_tags)().is_empty() {
+        RepoListHeroType::AllProjects
+    } else {
+        RepoListHeroType::SearchResult
+    };
+
+    rsx! {
+        div { class: "max-w-3xl",
+            h1 { class: "text-2xl md:text-3xl font-black font-sans uppercase tracking-tight text-secondary-2 mb-2 flex flex-wrap items-center gap-2",
+                if hero_type == RepoListHeroType::SearchResult {
+                    "Search Result"
+                } else {
+                    "All Project"
+                }
+            }
+            p { class: "text-secondary-3 text-sm md:text-base leading-relaxed font-mono italic",
+                "A comprehensive catalog of the Rust ecosystem. Monitor growth, track updates, and discover foundational codebases."
+            }
+        }
+    }
+}
+
+#[component]
+fn RepoListTags() -> Element {
+    let mut ctx = use_context::<RepoListContext>();
     let navigator = use_navigator();
-    let facets = use_server_future({
-        let active_tags = active_tags.clone();
-        move || list_repo_tag_facets(active_tags.clone(), Some(12))
-    })?;
+    let facets = use_server_future(move || list_repo_tag_facets((ctx.active_tags)(), Some(20)))?;
+
     match facets() {
         Some(Ok(items)) => {
+            let active_set = (ctx.active_tags)()
+                .iter()
+                .map(|v| v.to_lowercase())
+                .collect::<BTreeSet<_>>();
             let advice_tags = items
                 .into_iter()
+                .filter(|item| !active_set.contains(&item.value.to_lowercase()))
                 .map(|item| TagAdviceItem {
                     key: item.value,
                     count: item.count,
@@ -231,48 +309,60 @@ fn TagSearchGuide(active_tags: Vec<String>) -> Element {
                 .collect::<Vec<_>>();
 
             rsx! {
-                div { class: "space-y-3 pt-4",
-                    div { class: "space-y-2",
-                        div { class: "text-xs font-mono tracking-wide text-secondary-5", "ACTIVE TAGS" }
+                div { class: "flex flex-col gap-3",
+                    if !(ctx.active_tags)().is_empty() {
                         div { class: "flex flex-wrap gap-2",
-                            for tag in active_tags.iter() {
+                            for tag in (ctx.active_tags)().iter() {
                                 button {
                                     key: "{tag}",
-                                    class: "border border-secondary-2 bg-secondary-2 px-2.5 py-1 text-xs font-medium text-primary shadow-comic-sm",
+                                    class: "flex items-center gap-1.5 px-3 py-1.5 bg-secondary-2 text-primary border border-secondary-2 rounded-none text-xs font-bold font-mono uppercase tracking-wider",
                                     onclick: {
-                                        let active_tags = active_tags.clone();
                                         let tag = tag.clone();
                                         move |_| {
-                                            let next_tags = remove_tag_query(&active_tags, &tag);
-                                            navigator.push(crate::root::Route::RepoListView {
-                                                tags: next_tags,
-                                            });
+                                            let next_tags = remove_tag_query(&(ctx.active_tags)(), &tag);
+                                            ctx.active_tags.set(parse_tags_query(next_tags.as_deref()));
+                                            ctx.current_page.set(1);
+                                            let (metric_q, range_q) = query_params_from_filter_sort(
+                                                (ctx.filter_type)(),
+                                                (ctx.sort_type)(),
+                                            );
+                                            navigator
+                                                .push(crate::root::Route::RepoListView {
+                                                    tags: next_tags,
+                                                    metric: metric_q,
+                                                    range: range_q,
+                                                });
                                         }
                                     },
-                                    "{tag}"
+                                    "{tag} ×"
                                 }
                             }
                         }
                     }
                     if !advice_tags.is_empty() {
-                        div { class: "space-y-2",
-                            div { class: "text-xs font-mono tracking-wide text-secondary-5", "ADVICE TAGS" }
-                            div { class: "flex flex-wrap gap-2",
-                                for advice in advice_tags {
-                                    button {
-                                        key: "{advice.key}",
-                                        class: "border border-primary-6 bg-primary px-2.5 py-1 text-xs text-secondary-5 hover:bg-primary-1",
-                                        onclick: {
-                                            let active_tags = active_tags.clone();
-                                            move |_| {
-                                                let query = append_tag_query(&active_tags, &advice.key);
-                                                navigator.push(crate::root::Route::RepoListView {
+                        div { class: "flex flex-wrap gap-2",
+                            for advice in advice_tags {
+                                button {
+                                    key: "{advice.key}",
+                                    class: "flex items-center gap-1.5 px-3 py-1.5 bg-primary border border-primary-6 text-secondary-5 rounded-none text-xs font-bold font-mono uppercase tracking-wider hover:border-secondary-3 hover:text-secondary-3 transition-colors",
+                                    onclick: {
+                                        move |_| {
+                                            let query = append_tag_query(&(ctx.active_tags)(), &advice.key);
+                                            ctx.active_tags.set(parse_tags_query(Some(&query)));
+                                            ctx.current_page.set(1);
+                                            let (metric_q, range_q) = query_params_from_filter_sort(
+                                                (ctx.filter_type)(),
+                                                (ctx.sort_type)(),
+                                            );
+                                            navigator
+                                                .push(crate::root::Route::RepoListView {
                                                     tags: Some(query),
+                                                    metric: metric_q,
+                                                    range: range_q,
                                                 });
-                                            }
-                                        },
-                                        "{advice.key} ({advice.count})"
-                                    }
+                                        }
+                                    },
+                                    "{advice.key} ({advice.count})"
                                 }
                             }
                         }
@@ -286,102 +376,295 @@ fn TagSearchGuide(active_tags: Vec<String>) -> Element {
 }
 
 #[component]
-fn RepoListIO(
-    mut page_size: Signal<u32>,
-    mut current_page: Signal<u32>,
-    active_tags: Vec<String>,
-) -> Element {
-    let repos = use_server_future(move || {
-        let limit = page_size();
-        let page = current_page().max(1);
-        list_repos(PageQuery {
-            limit: Some(limit),
-            offset: Some(limit.saturating_mul(page.saturating_sub(1))),
-        })
-    })?;
+fn RepoListHandler() -> Element {
+    let mut ctx = use_context::<RepoListContext>();
+    let navigator = use_navigator();
 
-    match repos() {
-        Some(Ok(page)) => {
-            let meta = page.meta;
-            let total = meta.total;
-            let items = page.items;
-            let filtered_items = if active_tags.is_empty() {
-                items.clone()
-            } else {
-                items
-                    .into_iter()
-                    .filter(|repo| repo_contains_all_tags(repo, &active_tags))
-                    .collect::<Vec<_>>()
-            };
-            let filtered_total = filtered_items.len() as u64;
-            let total_pages = if active_tags.is_empty() {
-                meta.total_pages
-            } else {
-                1
-            };
-
-            let from = if total == 0 {
-                0
-            } else {
-                meta.offset as u64 + 1
-            };
-            let to = meta.offset as u64 + filtered_total;
-
-            rsx! {
-                div { class: "space-y-8",
-                    div { class: "flex items-center justify-between gap-4 border border-primary-6 px-4 py-3",
-                        div { class: "text-xs font-mono tracking-wide text-secondary-5",
-                            if active_tags.is_empty() {
-                                "ENTRIES: "
-                                span { class: "font-semibold text-secondary-3", "{total}" }
-                            } else {
-                                "MATCHED: "
-                                span { class: "font-semibold text-secondary-3", "{filtered_total}" }
-                                span { class: "text-secondary-5", " / {total}" }
-                            }
+    rsx! {
+        div { class: "flex flex-col md:flex-row items-center justify-between gap-4",
+            div { class: "text-xs font-mono tracking-wide text-secondary-5",
+                "List "
+                span { class: "font-semibold text-secondary-3",
+                    "{(ctx.summary)().from}-{(ctx.summary)().to}"
+                }
+                " of "
+                span { class: "font-semibold text-secondary-3", "{(ctx.summary)().total}" }
+            }
+            div { class: "flex items-center gap-4 w-full md:w-auto",
+                Select::<FilterType> {
+                    value: Some((ctx.filter_type)()),
+                    placeholder: "filter",
+                    on_value_change: move |next: Option<FilterType>| {
+                        if let Some(next_filter) = next {
+                            ctx.filter_type.set(next_filter);
+                            ctx.current_page.set(1);
+                            let (metric_q, range_q) = query_params_from_filter_sort(
+                                next_filter,
+                                (ctx.sort_type)(),
+                            );
+                            navigator
+                                .push(crate::root::Route::RepoListView {
+                                    tags: active_tags_to_query(&(ctx.active_tags)()),
+                                    metric: metric_q,
+                                    range: range_q,
+                                });
                         }
-                        if filtered_total > 0 {
-                            div { class: "text-xs font-mono tracking-wide text-secondary-5",
-                                "RANGE: "
-                                span { class: "font-semibold text-secondary-3", "{from}-{to}" }
+                    },
+                    SelectTrigger {
+                        aria_label: "Select filter",
+                        style: "min-width: 9rem;",
+                        SelectValue {}
+                    }
+                    SelectList { aria_label: "Filter options",
+                        SelectGroup {
+                            SelectGroupLabel { "Filter" }
+                            SelectOption::<FilterType> {
+                                index: 0usize,
+                                value: FilterType::Total,
+                                text_value: Some(filter_label(FilterType::Total).to_string()),
+                                "{filter_label(FilterType::Total)}"
+                                SelectItemIndicator {}
+                            }
+                            SelectOption::<FilterType> {
+                                index: 1usize,
+                                value: FilterType::Daily,
+                                text_value: Some(filter_label(FilterType::Daily).to_string()),
+                                "{filter_label(FilterType::Daily)}"
+                                SelectItemIndicator {}
+                            }
+                            SelectOption::<FilterType> {
+                                index: 2usize,
+                                value: FilterType::Weekly,
+                                text_value: Some(filter_label(FilterType::Weekly).to_string()),
+                                "{filter_label(FilterType::Weekly)}"
+                                SelectItemIndicator {}
+                            }
+                            SelectOption::<FilterType> {
+                                index: 3usize,
+                                value: FilterType::Monthly,
+                                text_value: Some(filter_label(FilterType::Monthly).to_string()),
+                                "{filter_label(FilterType::Monthly)}"
+                                SelectItemIndicator {}
                             }
                         }
                     }
-                    if filtered_items.is_empty() {
-                        div { class: "flex min-h-[320px] flex-col items-center justify-center border border-dashed border-primary-6 bg-primary text-center",
-                            span { class: "mb-3 font-mono text-sm tracking-widest text-secondary-5",
-                                "NO_DATA"
-                            }
-                            if active_tags.is_empty() {
-                                span { class: "text-sm text-secondary-5", "No repos found" }
-                            } else {
-                                span { class: "text-sm text-secondary-5", "No repos for selected tag set" }
-                            }
+                }
+                Select::<u32> {
+                    value: Some((ctx.page_size)()),
+                    placeholder: "page size",
+                    on_value_change: move |v: Option<u32>| {
+                        if let Some(v) = v {
+                            ctx.page_size.set(v);
+                            ctx.current_page.set(1);
                         }
-                    } else {
-                        div { class: "space-y-4",
-                            for r in filtered_items {
-                                RepoManuscriptCard { key: "{r.id}", repo: r }
+                    },
+                    SelectTrigger {
+                        aria_label: "Select page size",
+                        style: "min-width: 7rem;",
+                        SelectValue {}
+                    }
+                    SelectList { aria_label: "Page size options",
+                        SelectGroup {
+                            SelectGroupLabel { "Page size" }
+                            SelectOption::<u32> {
+                                index: 0usize,
+                                value: 20u32,
+                                text_value: Some("20".to_string()),
+                                "20"
+                                SelectItemIndicator {}
+                            }
+                            SelectOption::<u32> {
+                                index: 1usize,
+                                value: 50u32,
+                                text_value: Some("50".to_string()),
+                                "50"
+                                SelectItemIndicator {}
+                            }
+                            SelectOption::<u32> {
+                                index: 2usize,
+                                value: 100u32,
+                                text_value: Some("100".to_string()),
+                                "100"
+                                SelectItemIndicator {}
                             }
                         }
                     }
-                    if total_pages > 1 && active_tags.is_empty() {
-                        div { class: "pt-2",
-                            CommonPagination {
-                                current_page: current_page(),
-                                total_pages,
-                                on_page_change: move |p| current_page.set(p),
+                }
+                Select::<SortType> {
+                    value: Some((ctx.sort_type)()),
+                    placeholder: "sort",
+                    on_value_change: move |next: Option<SortType>| {
+                        if let Some(next_sort) = next {
+                            ctx.sort_type.set(next_sort);
+                            if next_sort == SortType::AddTime {
+                                ctx.filter_type.set(FilterType::Total);
+                            }
+                            ctx.current_page.set(1);
+                            let current_filter = if next_sort == SortType::AddTime {
+                                FilterType::Total
+                            } else {
+                                (ctx.filter_type)()
+                            };
+                            let (metric_q, range_q) = query_params_from_filter_sort(
+                                current_filter,
+                                next_sort,
+                            );
+                            navigator
+                                .push(crate::root::Route::RepoListView {
+                                    tags: active_tags_to_query(&(ctx.active_tags)()),
+                                    metric: metric_q,
+                                    range: range_q,
+                                });
+                        }
+                    },
+                    SelectTrigger { aria_label: "Select sort", style: "min-width: 10rem;", SelectValue {} }
+                    SelectList { aria_label: "Sort options",
+                        SelectGroup {
+                            SelectGroupLabel { "Sort" }
+                            SelectOption::<SortType> {
+                                index: 0usize,
+                                value: SortType::Star,
+                                text_value: Some(sort_label(SortType::Star).to_string()),
+                                "{sort_label(SortType::Star)}"
+                                SelectItemIndicator {}
+                            }
+                            SelectOption::<SortType> {
+                                index: 1usize,
+                                value: SortType::Fork,
+                                text_value: Some(sort_label(SortType::Fork).to_string()),
+                                "{sort_label(SortType::Fork)}"
+                                SelectItemIndicator {}
+                            }
+                            SelectOption::<SortType> {
+                                index: 2usize,
+                                value: SortType::Issue,
+                                text_value: Some(sort_label(SortType::Issue).to_string()),
+                                "{sort_label(SortType::Issue)}"
+                                SelectItemIndicator {}
+                            }
+                            SelectOption::<SortType> {
+                                index: 3usize,
+                                value: SortType::AddTime,
+                                text_value: Some(sort_label(SortType::AddTime).to_string()),
+                                "{sort_label(SortType::AddTime)}"
+                                SelectItemIndicator {}
                             }
                         }
                     }
                 }
             }
         }
-        Some(Err(e)) => rsx! {
-            div { class: "rounded-lg border border-primary-6 bg-primary-1 p-4 text-sm text-primary-error",
-                "{e}"
+    }
+}
+
+#[component]
+fn RepoListIO() -> Element {
+    let mut ctx = use_context::<RepoListContext>();
+    let repos = use_server_future(move || {
+        let active_tags = (ctx.active_tags)();
+        let filter_type = (ctx.filter_type)();
+        let sort_type = (ctx.sort_type)();
+        let limit = (ctx.page_size)();
+        let page = (ctx.current_page)().max(1);
+        let page_query = PageQuery {
+            limit: Some(limit),
+            offset: Some(limit.saturating_mul(page.saturating_sub(1))),
+        };
+        let is_default_query = filter_type == FilterType::Total && sort_type == SortType::Star;
+        let query = RepoListQuery {
+            page: page_query,
+            metric: if is_default_query {
+                None
+            } else {
+                Some(sort_metric(sort_type))
+            },
+            range: if is_default_query {
+                None
+            } else {
+                Some(filter_range(filter_type))
+            },
+            tags: (!active_tags.is_empty()).then_some(active_tags),
+        };
+        async move { list_repos_with_query(query).await }
+    })?;
+
+    match repos() {
+        Some(Ok(page)) => {
+            let meta = page.meta;
+            let items = page.items;
+            let active_tags = (ctx.active_tags)();
+            let hero_type = if active_tags.is_empty() {
+                RepoListHeroType::AllProjects
+            } else {
+                RepoListHeroType::SearchResult
+            };
+
+            let visible_total = items.len() as u64;
+            let from = if visible_total == 0 {
+                0
+            } else {
+                meta.offset as u64 + 1
+            };
+            let to = meta.offset as u64 + visible_total;
+            let next_summary = ListSummary {
+                from,
+                to,
+                total: meta.total,
+            };
+            if (ctx.summary)() != next_summary {
+                ctx.summary.set(next_summary);
             }
-        },
-        None => rsx! {},
+            let total_pages = meta.total_pages;
+
+            rsx! {
+                div { class: "space-y-8",
+                    if items.is_empty() {
+                        div { class: "flex min-h-[320px] flex-col items-center justify-center border border-dashed border-primary-6 bg-primary text-center",
+                            span { class: "mb-3 font-mono text-sm tracking-widest text-secondary-5",
+                                "NO_DATA"
+                            }
+                            if hero_type == RepoListHeroType::AllProjects {
+                                span { class: "text-sm text-secondary-5", "No repos found" }
+                            } else {
+                                span { class: "text-sm text-secondary-5",
+                                    "No repos for selected tag set"
+                                }
+                            }
+                        }
+                    } else {
+                        div { class: "space-y-4",
+                            for r in items {
+                                RepoManuscriptCard { key: "{r.id}", repo: r }
+                            }
+                        }
+                    }
+                    if total_pages > 1 {
+                        div { class: "pt-2",
+                            CommonPagination {
+                                current_page: (ctx.current_page)(),
+                                total_pages,
+                                on_page_change: move |p| ctx.current_page.set(p),
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Some(Err(e)) => {
+            if (ctx.summary)() != ListSummary::empty() {
+                ctx.summary.set(ListSummary::empty());
+            }
+            rsx! {
+                div { class: "rounded-lg border border-primary-6 bg-primary-1 p-4 text-sm text-primary-error",
+                    "{e}"
+                }
+            }
+        }
+        None => {
+            if (ctx.summary)() != ListSummary::empty() {
+                ctx.summary.set(ListSummary::empty());
+            }
+            rsx! {}
+        }
     }
 }

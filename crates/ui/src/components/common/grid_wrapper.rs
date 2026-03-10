@@ -92,7 +92,8 @@ pub struct GridBackground {
 
 impl GridBackground {
     fn is_empty(self) -> bool {
-        matches!(self.pattern, GridPattern::None) && matches!(self.gradient, GradientDirection::None)
+        matches!(self.pattern, GridPattern::None)
+            && matches!(self.gradient, GradientDirection::None)
     }
 }
 
@@ -228,7 +229,7 @@ pub fn GridWrapper(
                 }
             }
 
-            div { class: "relative z-0 h-full w-full {padding_class}",
+            div { class: "relative h-full w-full {padding_class}",
                 {children}
             }
         }

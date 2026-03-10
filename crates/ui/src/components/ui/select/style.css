@@ -8,36 +8,46 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  border: 1px solid var(--primary-color-6);
-  border-radius: 0;
-  background: var(--primary-color-1);
-  box-shadow: none;
-  color: var(--secondary-color-4);
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--secondary-color-2);
+  border-radius: 0.75rem;
+  background: var(--primary-color);
+  box-shadow: 0 2px 8px color-mix(in oklab, var(--primary-color-6) 18%, transparent);
+  color: var(--secondary-color-2);
   cursor: pointer;
-  gap: 0.25rem;
-  transition: transform 0.15s ease, background-color 100ms ease-out, box-shadow 0.2s ease;
+  gap: 0.5rem;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.75rem;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .select-trigger span[data-placeholder="true"] {
   color: var(--secondary-color-5);
+  opacity: 0.95;
+  font-family: var(--font-mono, monospace);
 }
 .select[data-state="open"] .select-trigger {
   pointer-events: none;
+  box-shadow: 0 2px 8px color-mix(in oklab, var(--primary-color-6) 18%, transparent);
 }
 .select-expand-icon {
   width: 20px;
   height: 20px;
   fill: none;
-  stroke: var(--primary-color-7);
+  stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
+  transition: color 0.2s ease;
 }
 .select-check-icon {
   width: 1rem;
   height: 1rem;
   fill: none;
-  stroke: var(--secondary-color-5);
+  stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
@@ -45,13 +55,15 @@
 .select[data-disabled="true"] .select-trigger {
   color: var(--secondary-color-5);
   cursor: not-allowed;
+  box-shadow: 0 1px 4px color-mix(in oklab, var(--primary-color-6) 12%, transparent);
+  border-color: color-mix(in oklab, var(--secondary-color-2) 65%, transparent);
 }
 .select-trigger:hover:not([data-disabled="true"]),
 .select-trigger:focus-visible {
-  background: var(--primary-color-2);
-  color: var(--secondary-color-3);
-  box-shadow: 2px 2px 0 0 color-mix(in oklab, var(--primary-color-6) 75%, transparent);
-  transform: translate(-1px, -1px);
+  background: var(--secondary-color-2);
+  color: var(--primary-color);
+  border-color: var(--focused-border-color);
+  box-shadow: 0 3px 10px color-mix(in oklab, var(--primary-color-6) 24%, transparent);
   outline: none;
 }
 .select-list {
@@ -61,12 +73,12 @@
   left: 0;
   min-width: 100%;
   box-sizing: border-box;
-  padding: 0.25rem;
-  border: 1px solid var(--primary-color-6);
-  border-radius: 0;
-  margin-top: 0.25rem;
-  background: var(--primary-color-1);
-  box-shadow: 4px 4px 0 0 color-mix(in oklab, var(--primary-color-6) 65%, transparent);
+  padding: 0.35rem;
+  border: 2px solid var(--secondary-color-2);
+  border-radius: 0.75rem;
+  margin-top: 0.5rem;
+  background: var(--primary-color);
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--primary-color-6) 24%, transparent);
   opacity: 0;
   pointer-events: none;
   transform-origin: top;
@@ -104,10 +116,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 0;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 2px solid transparent;
   cursor: pointer;
-  font-size: 14px;
+  color: var(--secondary-color-2);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 .select-option[data-disabled="true"] {
   color: var(--secondary-color-5);
@@ -115,14 +135,20 @@
 }
 .select-option:hover:not([data-disabled="true"]),
 .select-option:focus-visible {
-  background: var(--primary-color-2);
-  color: var(--secondary-color-3);
+  background: var(--secondary-color-2);
+  color: var(--primary-color);
+  border-color: var(--focused-border-color);
   outline: none;
 }
 .select-group-label {
-  padding: 4px 12px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
   color: var(--secondary-color-5);
   font-size: 0.75rem;
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 [data-disabled="true"] {
   cursor: not-allowed;

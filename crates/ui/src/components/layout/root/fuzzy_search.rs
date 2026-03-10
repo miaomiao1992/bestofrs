@@ -45,7 +45,11 @@ pub fn FuzzySearch() -> Element {
     };
     let mut go_tag = move |_label: String, value: String| {
         close_dialog();
-        navigator.push(Route::RepoListView { tags: Some(value) });
+        navigator.push(Route::RepoListView {
+            tags: Some(value),
+            metric: None,
+            range: None,
+        });
     };
     let page = Pagination {
         limit: Some(20),

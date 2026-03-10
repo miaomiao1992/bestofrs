@@ -1,14 +1,12 @@
 use dioxus::prelude::*;
 
-use super::{
-    GradientDirection, GridBackground, GridPadding, GridPattern, GridType, GridWrapper,
-};
+use super::{GradientDirection, GridBackground, GridPadding, GridPattern, GridType, GridWrapper};
 
 #[component]
 pub fn GridSlashTransition() -> Element {
     rsx! {
         GridWrapper {
-            class: Some("h-4".to_string()),
+            class: "h-4 -z-0",
             padding: GridPadding::None,
             is_dot_on: true,
             grid_type: GridType::Default,
