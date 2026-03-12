@@ -9,9 +9,14 @@ use crate::{
 #[component]
 pub fn Footer() -> Element {
     rsx! {
-        footer { class: "relative mt-auto h-full min-h-[340px] overflow-hidden border-t border-dashed border-primary-6 bg-transparent",
+        footer { class: "relative mt-auto h-full min-h-[340px] overflow-hidden bg-transparent",
             div { class: "pointer-events-none absolute inset-x-0 bottom-0 h-[460px] overflow-hidden -z-0",
-                GearMap { count: 7, class: "text-secondary-6/60", height: 460, seed: 12 }
+                GearMap {
+                    count: 7,
+                    class: "text-secondary-6/60",
+                    height: 460,
+                    seed: 12,
+                }
             }
             div { class: "relative z-10 flex h-full min-h-[340px] flex-col px-6 py-8 md:px-10",
                 div { class: "grid flex-1 grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-12",
@@ -54,6 +59,12 @@ pub fn Footer() -> Element {
                                 to: Route::TagListView {},
                                 "Tag"
                             }
+                            Link {
+                                class: "block hover:text-secondary-3 hover:underline",
+                                to: Route::AboutView {},
+                                "About"
+                            }
+
                         }
                     }
                     section { class: "space-y-3 md:col-span-1 lg:col-span-3",
@@ -64,7 +75,6 @@ pub fn Footer() -> Element {
                             div { class: "h-1.5 w-1.5 rounded-full bg-secondary-success" }
                             span { "Operational" }
                         }
-                        div { class: "text-xs font-mono text-secondary-5", "STYLE: MANGA_MANUSCRIPT_V1" }
                     }
                 }
                 div { class: "mt-8 flex items-center justify-center border-t border-dashed border-primary-6 pt-4 text-xs font-mono text-secondary-5",
@@ -79,7 +89,11 @@ pub fn Footer() -> Element {
                             span { "Dioxus" }
                         }
                         span { "and" }
-                        HeartIcon { width: 18, height: 18, style: "color: var(--primary-error-color);" }
+                        HeartIcon {
+                            width: 18,
+                            height: 18,
+                            style: "color: var(--primary-error-color);",
+                        }
                         span { "by" }
                         a {
                             class: "text-secondary-4 underline-offset-2 transition-colors hover:text-secondary-2 hover:underline",
@@ -88,6 +102,7 @@ pub fn Footer() -> Element {
                             rel: "noopener noreferrer",
                             "zhiyanzhaijie"
                         }
+                        span { "for Rustacean" }
                     }
                 }
             }

@@ -23,6 +23,7 @@ pub fn HeaderNav() -> Element {
                 "REPO"
             }
             Link { class: "border border-transparent px-3 py-1 font-mono text-xs tracking-wide text-secondary-5 transition-all hover:border-primary-6 hover:bg-primary-1 hover:text-secondary-3", to: Route::TagListView {}, "TAGS" }
+            Link { class: "border border-transparent px-3 py-1 font-mono text-xs tracking-wide text-secondary-5 transition-all hover:border-primary-6 hover:bg-primary-1 hover:text-secondary-3", to: Route::AboutView {}, "ABOUT" }
             if show_admin {
                 Link { class: "border border-transparent px-3 py-1 font-mono text-xs tracking-wide text-secondary-5 transition-all hover:border-primary-6 hover:bg-primary-1 hover:text-secondary-3", to: Route::AdminProjectsView {}, "ADMIN" }
             }

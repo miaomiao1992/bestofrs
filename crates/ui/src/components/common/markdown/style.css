@@ -15,11 +15,11 @@
   overflow-wrap: anywhere;
 }
 
-.common-markdown > :first-child {
+.common-markdown> :first-child {
   margin-top: 0 !important;
 }
 
-.common-markdown > :last-child {
+.common-markdown> :last-child {
   margin-bottom: 0 !important;
 }
 
@@ -48,9 +48,18 @@
   border-bottom: 1px solid var(--md-border);
 }
 
-.common-markdown h3 { font-size: 1.25rem; }
-.common-markdown h4 { font-size: 1.1rem; }
-.common-markdown h5 { font-size: 1rem; }
+.common-markdown h3 {
+  font-size: 1.25rem;
+}
+
+.common-markdown h4 {
+  font-size: 1.1rem;
+}
+
+.common-markdown h5 {
+  font-size: 1rem;
+}
+
 .common-markdown h6 {
   font-size: 0.92rem;
   color: var(--md-fg-muted);
@@ -82,19 +91,45 @@
 
 .common-markdown ul,
 .common-markdown ol {
-  padding-left: 1.5rem;
+  padding: 0.65rem 0.9rem 0.65rem 1.8rem;
+  margin-left: 0;
+  background: color-mix(in oklab, var(--md-bg-soft) 62%, transparent);
+  border: 1px solid var(--md-border);
+  border-radius: 0.75rem;
 }
 
-.common-markdown li + li {
+.common-markdown ol {
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+.common-markdown ul {
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
+.common-markdown li+li {
   margin-top: 0.35rem;
+}
+
+.common-markdown ul li::marker {
+  color: var(--md-heading);
+  font-size: 0.95em;
+}
+
+.common-markdown ol li::marker {
+  color: var(--md-heading);
+  font-weight: 780;
 }
 
 .common-markdown blockquote {
   margin-inline: 0;
-  padding: 0.35rem 1rem;
+  padding: 0.7rem 1rem;
   color: var(--md-fg-muted);
   border-left: 3px solid var(--md-border);
-  background: color-mix(in oklab, var(--md-bg-soft) 65%, transparent);
+  background: color-mix(in oklab, var(--md-bg-soft) 88%, var(--md-bg-code));
+  border-top: 1px solid color-mix(in oklab, var(--md-border) 75%, transparent);
+  border-right: 1px solid color-mix(in oklab, var(--md-border) 75%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--md-border) 75%, transparent);
   border-radius: 0 0.65rem 0.65rem 0;
 }
 
@@ -105,6 +140,25 @@
   border: 1px solid var(--md-border);
   border-radius: 0.45rem;
   padding: 0.14rem 0.36rem;
+}
+
+.common-markdown strong,
+.common-markdown b {
+  color: var(--md-heading);
+  background: color-mix(in oklab, var(--md-bg-soft) 68%, transparent);
+  border: 1px solid color-mix(in oklab, var(--md-border) 80%, transparent);
+  border-radius: 0.35rem;
+  padding: 0.02rem 0.28rem;
+  font-weight: 820;
+}
+
+.common-markdown em,
+.common-markdown i {
+  color: color-mix(in oklab, var(--md-heading) 84%, var(--md-fg-muted));
+  background: color-mix(in oklab, var(--md-bg-soft) 50%, transparent);
+  border-radius: 0.3rem;
+  padding: 0.01rem 0.2rem;
+  font-style: italic;
 }
 
 .common-markdown pre {
@@ -175,7 +229,7 @@
   border-radius: 0.7rem;
 }
 
-.common-markdown > p:first-of-type:has(a img) {
+.common-markdown>p:first-of-type:has(a img) {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
@@ -184,7 +238,7 @@
   text-align: left;
 }
 
-.common-markdown > p:first-of-type:has(> a:nth-of-type(2)):not(:has(img)) {
+.common-markdown>p:first-of-type:has(> a:nth-of-type(2)):not(:has(img)) {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -193,12 +247,12 @@
   text-align: center;
 }
 
-.common-markdown > p:first-of-type:has(> a:nth-of-type(2)):not(:has(img)) > a {
+.common-markdown>p:first-of-type:has(> a:nth-of-type(2)):not(:has(img))>a {
   display: inline-flex;
   white-space: nowrap;
 }
 
-.common-markdown > p:first-of-type:has(> span a) {
+.common-markdown>p:first-of-type:has(> span a) {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -207,29 +261,29 @@
   text-align: center;
 }
 
-.common-markdown > p:first-of-type:has(> span a) > span {
+.common-markdown>p:first-of-type:has(> span a)>span {
   display: inline-flex;
   align-items: center;
 }
 
-.common-markdown > p:first-of-type:has(> span a) > span a {
+.common-markdown>p:first-of-type:has(> span a)>span a {
   display: inline-flex;
   white-space: nowrap;
 }
 
-.common-markdown > p:first-of-type:has(a img) a {
+.common-markdown>p:first-of-type:has(a img) a {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   border-bottom: 0;
 }
 
-.common-markdown > p:first-of-type:has(> span a img) {
+.common-markdown>p:first-of-type:has(> span a img) {
   justify-content: flex-start;
   text-align: left;
 }
 
-.common-markdown > p:first-of-type:has(a img) img {
+.common-markdown>p:first-of-type:has(a img) img {
   display: block;
   margin: 0;
   border-radius: 0;

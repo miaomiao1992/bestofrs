@@ -1,16 +1,18 @@
 mod admin;
+mod about;
 mod home;
 mod login;
 mod repo;
 mod tag;
 
-use super::layouts::{AdminLayout, RootLayout, UserLayout};
 use dioxus::prelude::*;
+use super::layouts::{AdminLayout, RootLayout, UserLayout};
 use admin::{AdminJobView, AdminProjectsView, AdminTagsView};
 use home::HomeView;
 use login::LoginView;
 use repo::{RepoDetailView, RepoListView};
 use tag::TagListView;
+use about::AboutView;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -46,4 +48,6 @@ pub enum Route {
             TagListView {},
             #[route("/login")]
             LoginView {},
+            #[route("/about")]
+            AboutView {}
 }
