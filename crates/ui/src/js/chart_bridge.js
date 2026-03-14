@@ -9,21 +9,30 @@ function require_chart() {
 
 function resolve_canvas(canvas_id) {
   const element = document.getElementById(canvas_id);
-  if (!element) {
-    throw new Error(`Canvas not found: ${canvas_id}`);
-  }
+  if (!element) return null;
   if (!(element instanceof HTMLCanvasElement)) {
     throw new Error(`Element is not a canvas: ${canvas_id}`);
   }
   return element;
 }
+async function wait_for_canvas(canvas_id, max_attempts = 8) {
+  for (let attempt = 0; attempt < max_attempts; attempt += 1) {
+    const canvas = resolve_canvas(canvas_id);
+    if (canvas) return canvas;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+  return null;
+}
 
 export async function create_chart(canvas_id, config, drop) {
   const Chart = require_chart();
-  const canvas = resolve_canvas(canvas_id);
+  const canvas = await wait_for_canvas(canvas_id);
+  if (!canvas) {
+    return null;
+  }
   const context = canvas.getContext("2d");
   if (!context) {
-    throw new Error(`2d context unavailable: ${canvas_id}`);
+    return null;
   }
   const chart = new Chart(context, config);
 

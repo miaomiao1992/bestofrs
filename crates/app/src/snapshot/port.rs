@@ -11,6 +11,12 @@ pub trait SnapshotRepo: Send + Sync {
     async fn insert_daily_many(&self, snapshots: &[Snapshot]) -> AppResult<()>;
 
     async fn list_by_repo(&self, repo_id: &RepoId, page: Pagination) -> AppResult<Page<Snapshot>>;
+    async fn list_by_repo_in_date_range(
+        &self,
+        repo_id: &RepoId,
+        from_date: NaiveDate,
+        to_date: NaiveDate,
+    ) -> AppResult<Page<Snapshot>>;
 }
 
 /// Delta derived from snapshots.
@@ -29,6 +35,20 @@ pub struct SnapshotDelta {
     pub watchers_delta: Option<i64>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SnapshotMetricDeltaSummary {
+    pub daily: i64,
+    pub weekly: i64,
+    pub monthly: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SnapshotDeltasSummary {
+    pub stars: SnapshotMetricDeltaSummary,
+    pub forks: SnapshotMetricDeltaSummary,
+    pub issues: SnapshotMetricDeltaSummary,
+}
+
 #[async_trait::async_trait]
 pub trait SnapshotDeltaRepo: Send + Sync {
     async fn upsert(&self, item: &SnapshotDelta) -> AppResult<()>;
@@ -43,6 +63,12 @@ pub trait SnapshotDeltaRepo: Send + Sync {
         &self,
         repo_id: &RepoId,
         page: Pagination,
+    ) -> AppResult<Page<SnapshotDelta>>;
+    async fn list_by_repo_in_date_range(
+        &self,
+        repo_id: &RepoId,
+        from_date: NaiveDate,
+        to_date: NaiveDate,
     ) -> AppResult<Page<SnapshotDelta>>;
 }
 

@@ -3,5 +3,6 @@ pub mod projects;
 pub mod repos;
 pub mod search;
 pub mod snapshot_deltas;
+pub mod snapshot_deltas_summary;
 pub mod snapshots;
 pub mod tags;

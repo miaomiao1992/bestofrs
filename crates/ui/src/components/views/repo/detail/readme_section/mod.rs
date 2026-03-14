@@ -16,7 +16,10 @@ pub(crate) fn ReadmeSection() -> Element {
     rsx! {
         section { class: "space-y-4 border border-primary-6 bg-primary p-5 shadow-comic-sm",
             div { class: "space-y-1",
-                h2 { class: "text-lg font-semibold", "README" }
+                h2 { class: "text-5xl leading-[0.8] font-black tracking-tighter text-secondary-2 uppercase md:text-7xl",
+                    "Read"
+                    span { class: "text-transparent [-webkit-text-stroke:2px_var(--primary-color-6)]", "me" }
+                }
                 p { class: "text-sm text-secondary-5", "Rendered from GitHub README" }
             }
 

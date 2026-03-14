@@ -142,6 +142,50 @@ impl SnapshotRepo for SqliteSnapshotRepo {
         let items = rows.into_iter().map(Into::into).collect();
         Ok(page.to_page(items, total as u64))
     }
+
+    async fn list_by_repo_in_date_range(
+        &self,
+        repo_id: &RepoId,
+        from_date: chrono::NaiveDate,
+        to_date: chrono::NaiveDate,
+    ) -> AppResult<Page<Snapshot>> {
+        let total: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM snapshots WHERE repo_id = ? AND snapshot_date >= ? AND snapshot_date <= ?",
+        )
+        .bind(repo_id.as_str())
+        .bind(from_date)
+        .bind(to_date)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(db_err)?;
+
+        let rows: Vec<SnapshotDb> = sqlx::query_as(
+            r#"
+            SELECT
+              repo_id, snapshot_date,
+              stars, forks, open_issues, watchers,
+              fetched_at
+            FROM snapshots
+            WHERE repo_id = ?
+              AND snapshot_date >= ?
+              AND snapshot_date <= ?
+            ORDER BY snapshot_date ASC
+            "#,
+        )
+        .bind(repo_id.as_str())
+        .bind(from_date)
+        .bind(to_date)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(db_err)?;
+
+        let items = rows.into_iter().map(Into::into).collect();
+        let pagination = Pagination {
+            limit: Some((total as u32).max(1)),
+            offset: Some(0),
+        };
+        Ok(pagination.to_page(items, total as u64))
+    }
 }
 
 #[async_trait::async_trait]
@@ -299,5 +343,49 @@ impl SnapshotDeltaRepo for SqliteSnapshotRepo {
 
         let items = rows.into_iter().map(Into::into).collect();
         Ok(page.to_page(items, total as u64))
+    }
+
+    async fn list_by_repo_in_date_range(
+        &self,
+        repo_id: &RepoId,
+        from_date: chrono::NaiveDate,
+        to_date: chrono::NaiveDate,
+    ) -> AppResult<Page<SnapshotDelta>> {
+        let total: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM snapshot_deltas WHERE repo_id = ? AND snapshot_date >= ? AND snapshot_date <= ?",
+        )
+        .bind(repo_id.as_str())
+        .bind(from_date)
+        .bind(to_date)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(db_err)?;
+
+        let rows: Vec<SnapshotDeltaDb> = sqlx::query_as(
+            r#"
+            SELECT
+              repo_id, snapshot_date,
+              prev_snapshot_date,
+              stars_delta, forks_delta, open_issues_delta, watchers_delta
+            FROM snapshot_deltas
+            WHERE repo_id = ?
+              AND snapshot_date >= ?
+              AND snapshot_date <= ?
+            ORDER BY snapshot_date ASC
+            "#,
+        )
+        .bind(repo_id.as_str())
+        .bind(from_date)
+        .bind(to_date)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(db_err)?;
+
+        let items = rows.into_iter().map(Into::into).collect();
+        let pagination = Pagination {
+            limit: Some((total as u32).max(1)),
+            offset: Some(0),
+        };
+        Ok(pagination.to_page(items, total as u64))
     }
 }

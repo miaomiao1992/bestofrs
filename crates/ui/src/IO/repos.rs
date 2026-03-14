@@ -4,10 +4,11 @@ use crate::impls::state::State;
 use crate::types::repos::{BulkUpdateRepoTagResultDto, RepoDto, RepoReadmeDto};
 use crate::types::search::SearchResultDto;
 use crate::types::snapshot_deltas::SnapshotDeltaDto;
+use crate::types::snapshot_deltas_summary::SnapshotDeltasSummaryDto;
 use crate::types::snapshots::SnapshotDto;
 use crate::types::tags::{ImportTagsResult, TagDto, TagFacetDto, TagImportItem, TagListItemDto};
 
-use app::prelude::{Page, Pagination};
+use app::prelude::{DurationRange, Page, Pagination};
 use app::repo::{
     BulkTagUpdateAction, BulkUpdateRepoTagCommand, ImportTagCommand, ImportTagsCommand,
     ReplaceRepoTagsCommand, RepoListQuery, RepoRankMetric, RepoRankTimeRange, RepoRankQuery,
@@ -374,6 +375,22 @@ pub async fn list_repo_snapshots(
     Ok(items_page.map(SnapshotDto::from))
 }
 
+#[post("/api/repos/:owner/:name/snapshots/in_duration", state: State)]
+pub async fn list_repo_snapshots_in_duration(
+    owner: String,
+    name: String,
+    duration: DurationRange,
+) -> ServerFnResult<Page<SnapshotDto>> {
+    let app_state = state.0;
+    let items_page = app_state
+        .snapshot
+        .query
+        .list_by_owner_name_in_duration(&owner, &name, duration)
+        .await
+        .map_err(api_error)?;
+    Ok(items_page.map(SnapshotDto::from))
+}
+
 #[post("/api/repos/:owner/:name/deltas", state: State)]
 pub async fn list_repo_deltas(
     owner: String,
@@ -389,4 +406,36 @@ pub async fn list_repo_deltas(
         .await
         .map_err(api_error)?;
     Ok(items_page.map(SnapshotDeltaDto::from))
+}
+
+#[post("/api/repos/:owner/:name/deltas/in_duration", state: State)]
+pub async fn list_repo_deltas_in_duration(
+    owner: String,
+    name: String,
+    duration: DurationRange,
+) -> ServerFnResult<Page<SnapshotDeltaDto>> {
+    let app_state = state.0;
+
+    let items_page = app_state
+        .snapshot
+        .query
+        .list_deltas_by_owner_name_in_duration(&owner, &name, duration)
+        .await
+        .map_err(api_error)?;
+    Ok(items_page.map(SnapshotDeltaDto::from))
+}
+
+#[post("/api/repos/:owner/:name/deltas_summary", state: State)]
+pub async fn list_repo_deltas_summary(
+    owner: String,
+    name: String,
+) -> ServerFnResult<SnapshotDeltasSummaryDto> {
+    let app_state = state.0;
+    let summary = app_state
+        .snapshot
+        .query
+        .list_deltas_summary_by_owner_name(&owner, &name)
+        .await
+        .map_err(api_error)?;
+    Ok(SnapshotDeltasSummaryDto::from(summary))
 }
