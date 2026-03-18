@@ -12,3 +12,5 @@ pub mod separator;
 pub mod tooltip;
 pub mod sheet;
 pub mod tabs;
+pub mod textarea;
+pub mod alert_dialog;

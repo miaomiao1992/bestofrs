@@ -1,6 +1,6 @@
 pub mod layouts;
 mod routes;
-mod theme;
+pub mod theme;
 
 use dioxus::prelude::*;
 pub use routes::Route;

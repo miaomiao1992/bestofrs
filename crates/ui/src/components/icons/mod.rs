@@ -26,6 +26,180 @@ pub fn ArrowLeftIcon(
 }
 
 #[component]
+pub fn PlusIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-plus-icon lucide-plus",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "M5 12h14" }
+            path { d: "M12 5v14" }
+        }
+    }
+}
+
+#[component]
+pub fn SearchIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-search-icon lucide-search",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "m21 21-4.34-4.34" }
+            circle { cx: "11", cy: "11", r: "8" }
+        }
+    }
+}
+
+#[component]
+pub fn EraserIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-eraser-icon lucide-eraser",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21" }
+            path { d: "m5.082 11.09 8.828 8.828" }
+        }
+    }
+}
+
+#[component]
+pub fn XIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-x-icon lucide-x",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "M18 6 6 18" }
+            path { d: "m6 6 12 12" }
+        }
+    }
+}
+
+#[component]
+pub fn TrashIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-trash-icon lucide-trash",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" }
+            path { d: "M3 6h18" }
+            path { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" }
+        }
+    }
+}
+
+#[component]
+pub fn WrenchIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-wrench-icon lucide-wrench",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" }
+        }
+    }
+}
+#[component]
+pub fn SaveIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-save-icon lucide-save",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" }
+            path { d: "M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" }
+            path { d: "M7 3v4a1 1 0 0 0 1 1h7" }
+        }
+    }
+}
+#[component]
 pub fn MenuIcon(
     #[props(default = 24)] width: u32,
     #[props(default = 24)] height: u32,
@@ -675,6 +849,32 @@ pub fn FerrisIcon(
                 path { d: "M6096 3985 c-37 -13 -86 -36 -107 -50 -64 -45 -138 -131 -169 -197\n-16 -35 -35 -98 -41 -140 -10 -60 -10 -92 0 -147 7 -38 28 -101 46 -139 65\n-136 213 -243 367 -265 60 -8 86 -7 149 7 98 22 166 56 233 117 109 99 156\n209 156 360 0 147 -50 262 -153 355 -55 50 -124 88 -196 110 -25 8 -84 14\n-131 14 -64 0 -102 -6 -154 -25z" }
                 path { d: "M8785 3995 c-112 -35 -215 -112 -275 -204 -51 -80 -72 -155 -74 -256\n0 -69 5 -105 22 -156 13 -36 36 -87 52 -112 44 -70 117 -134 195 -173 122 -59\n235 -67 362 -23 31 10 75 30 97 43 51 30 134 116 168 176 45 77 61 150 56 265\n-3 97 -6 107 -46 188 -31 63 -57 99 -98 137 -99 89 -206 131 -338 129 -45 -1\n-99 -7 -121 -14z" }
             }
+        }
+    }
+}
+
+#[component]
+pub fn LogOutIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-log-out-icon lucide-log-out",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "m16 17 5-5-5-5" }
+            path { d: "M21 12H9" }
+            path { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }
         }
     }
 }

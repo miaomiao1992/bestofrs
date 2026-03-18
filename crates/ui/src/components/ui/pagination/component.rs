@@ -156,7 +156,6 @@ pub fn PaginationPrevious(
                 xmlns: "http://www.w3.org/2000/svg",
                 polyline { points: "15 6 9 12 15 18" }
             }
-            span { class: "pagination-label", "Previous" }
         }
     }
 }
@@ -179,7 +178,6 @@ pub fn PaginationNext(
             onmousedown,
             onmouseup,
             attributes,
-            span { class: "pagination-label", "Next" }
             // ChevronRight icon from lucide https://lucide.dev/icons/chevron-right
             svg {
                 class: "pagination-icon",

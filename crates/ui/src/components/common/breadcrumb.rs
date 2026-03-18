@@ -69,7 +69,6 @@ fn build_crumbs(route: &Route) -> Vec<Crumb> {
             },
         ],
         Route::AdminProjectsView {} => vec![
-            home_crumb(),
             admin_crumb(),
             Crumb {
                 label: "PROJECTS".to_string(),
@@ -77,7 +76,6 @@ fn build_crumbs(route: &Route) -> Vec<Crumb> {
             },
         ],
         Route::AdminTagsView {} => vec![
-            home_crumb(),
             admin_crumb(),
             Crumb {
                 label: "TAGS".to_string(),
@@ -85,7 +83,6 @@ fn build_crumbs(route: &Route) -> Vec<Crumb> {
             },
         ],
         Route::AdminJobView {} => vec![
-            home_crumb(),
             admin_crumb(),
             Crumb {
                 label: "JOB".to_string(),
