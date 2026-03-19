@@ -22,10 +22,7 @@ pub fn AdminLayout() -> Element {
     let user_info = match &*user_state.read() {
         UserState::Loading => {
             return rsx! {
-                div { class: "flex flex-col gap-4 p-6",
-                    Skeleton { class: "h-8 w-48" }
-                    Skeleton { class: "h-64 w-full" }
-                }
+                Skeleton { class: "skeleton w-screen h-screen" }
             }
         }
         UserState::User(user) if user.role == "Admin" => Some(user.clone()),
@@ -167,7 +164,7 @@ pub fn AdminLayout() -> Element {
                     SuspenseBoundary {
                         fallback: move |_: SuspenseContext| {
                             rsx! {
-                                Skeleton { class: "skeleton w-full h-full bg-red-400" }
+                                Skeleton { class: "skeleton w-full h-full" }
                             }
                         },
                         Outlet::<Route> {}

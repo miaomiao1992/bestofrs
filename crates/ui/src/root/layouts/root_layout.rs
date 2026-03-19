@@ -1,5 +1,6 @@
-use crate::types::auth::MeDto;
+pub use crate::components::providers::{UserContext, UserState};
 use crate::{
+    components::providers::{ConfigContext, ConfigProvider, UserProvider},
     components::{toast::ToastProvider, ScrollProgress, ScrollToTop},
     root::theme::theme_seed,
     root::Route,
@@ -7,46 +8,34 @@ use crate::{
 };
 use dioxus::prelude::*;
 
-#[derive(Clone, PartialEq)]
-pub enum UserState {
-    Loading,
-    Guest,
-    User(MeDto),
-    Error(String),
-}
-
-pub type UserContext = Signal<UserState>;
-
 #[component]
 pub fn RootLayout() -> Element {
-    // Initialize user state once at root level
-    let mut user_state: UserContext = use_signal(|| UserState::Loading);
-    use_context_provider(|| user_state);
-    let me_fut = use_server_future(move || me())?;
+    // use `try_use_context` to avoid `client side` error,
+    // get it from `serve side` and init ConfigProvider for inner component
+    let config = try_use_context::<ConfigContext>().unwrap_or_default();
 
-    // Init theme
+    let me_fut = use_server_future(me)?;
+
+    let user_state = match me_fut() {
+        Some(Ok(Some(me))) => UserState::User(me),
+        Some(Ok(None)) => UserState::Guest,
+        Some(Err(err)) => UserState::Error(err.to_string()),
+        None => UserState::Loading,
+    };
+
     use_effect(move || {
         theme_seed();
-    });
-
-    // Load user data
-    use_effect(move || {
-        if !matches!(user_state(), UserState::Loading) {
-            return;
-        }
-        match me_fut() {
-            Some(Ok(Some(me))) => user_state.set(UserState::User(me)),
-            Some(Ok(None)) => user_state.set(UserState::Guest),
-            Some(Err(err)) => user_state.set(UserState::Error(err.to_string())),
-            None => {}
-        }
     });
 
     rsx! {
         ToastProvider {
             ScrollProgress {}
             ScrollToTop {}
-            Outlet::<Route> {}
+            ConfigProvider { config: config,
+                UserProvider { state: user_state,
+                    Outlet::<Route> {}
+                }
+            }
         }
     }
 }
