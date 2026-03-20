@@ -33,7 +33,7 @@ pub(super) fn HomeActionSection() -> Element {
                         }
                     }
                     a {
-                        href: "https://github.com/zhiyanzhaijie/bestofrs/issues/new",
+                        href: "https://github.com/zhiyanzhaijie/bestofrs/issues/new?template=recommend_repo.yaml",
                         target: "_blank",
                         rel: "noopener noreferrer",
                         class: "relative group",
