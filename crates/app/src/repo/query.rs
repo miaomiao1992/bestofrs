@@ -14,7 +14,15 @@ use crate::repo::{
 #[derive(Debug, Clone)]
 pub struct RepoSearchResult {
     pub repos: Page<Repo>,
-    pub tags: Page<Tag>,
+    pub tags: Page<RepoSearchTagItem>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RepoSearchTagItem {
+    pub label: String,
+    pub value: String,
+    pub description: Option<String>,
+    pub repos_total: u64,
 }
 
 #[derive(Clone)]
@@ -319,12 +327,14 @@ impl RepoQueryHandler {
         let result = if key.is_empty() {
             RepoSearchResult {
                 repos: self.repos.list(page).await?,
-                tags: self.repo_tags.list_tags(page).await?,
+                tags: self.enrich_search_tags(self.repo_tags.list_tags(page).await?).await?,
             }
         } else {
             RepoSearchResult {
                 repos: self.repos.search_by_key(key, page).await?,
-                tags: self.repo_tags.search_tags_by_key(key, page).await?,
+                tags: self
+                    .enrich_search_tags(self.repo_tags.search_tags_by_key(key, page).await?)
+                    .await?,
             }
         };
 
@@ -333,6 +343,32 @@ impl RepoQueryHandler {
         }
 
         Ok(result)
+    }
+
+    async fn enrich_search_tags(&self, page: Page<Tag>) -> AppResult<Page<RepoSearchTagItem>> {
+        let totals = self.repo_tags.count_repos_by_tags(&page.items).await?;
+        let items = page
+            .items
+            .into_iter()
+            .map(|tag| {
+                let label = tag.label.as_str().to_string();
+                let value = tag.value.as_str().to_string();
+                let repos_total = totals
+                    .get(&(label.clone(), value.clone()))
+                    .copied()
+                    .unwrap_or(0);
+                RepoSearchTagItem {
+                    label,
+                    value,
+                    description: tag.description,
+                    repos_total,
+                }
+            })
+            .collect();
+        Ok(Page {
+            items,
+            meta: page.meta,
+        })
     }
     pub async fn list_tag_facets_by_active_values(
         &self,

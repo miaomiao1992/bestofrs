@@ -76,6 +76,29 @@ pub fn SearchIcon(
 }
 
 #[component]
+pub fn CommandIcon(
+    #[props(default = 24)] width: u32,
+    #[props(default = 24)] height: u32,
+    #[props(extends = GlobalAttributes)] attributes: Vec<Attribute>,
+) -> Element {
+    rsx! {
+        svg {
+            class: "lucide lucide-command-icon lucide-command",
+            fill: "none",
+            height: "{height}",
+            stroke: "currentColor",
+            stroke_linecap: "round",
+            stroke_linejoin: "round",
+            stroke_width: "2",
+            view_box: "0 0 24 24",
+            width: "{width}",
+            xmlns: "http://www.w3.org/2000/svg",
+            ..attributes,
+            path { d: "M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" }
+        }
+    }
+}
+#[component]
 pub fn EraserIcon(
     #[props(default = 24)] width: u32,
     #[props(default = 24)] height: u32,
@@ -702,7 +725,7 @@ pub fn DioxusIcon(
         svg {
             width: "{width}",
             height: "{height}",
-            id: "svg5",
+            id: "svg",
             version: "1.1",
             view_box: "0 0 32 31.999997",
             xmlns: "http://www.w3.org/2000/svg",

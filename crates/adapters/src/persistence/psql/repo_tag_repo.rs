@@ -59,6 +59,38 @@ impl PostgresRepoTagRepo {
     pub fn new(pool: sqlx::PgPool) -> Self {
         Self { pool }
     }
+
+    async fn repo_totals_by_tag_ids(&self, tag_ids: &[String]) -> AppResult<HashMap<String, u64>> {
+        if tag_ids.is_empty() {
+            return Ok(HashMap::new());
+        }
+
+        let mut builder: QueryBuilder<Postgres> = QueryBuilder::new(
+            "SELECT m.tag_id, COUNT(DISTINCT m.repo_id) AS total \
+             FROM repo_tag_map m WHERE m.tag_id IN (",
+        );
+        let mut first = true;
+        for tag_id in tag_ids {
+            if !first {
+                builder.push(", ");
+            }
+            first = false;
+            builder.push_bind(tag_id);
+        }
+        builder.push(") GROUP BY m.tag_id");
+
+        let rows: Vec<(String, i64)> = builder
+            .build_query_as()
+            .fetch_all(&self.pool)
+            .await
+            .map_err(db_err)?;
+
+        let mut totals = HashMap::new();
+        for (tag_id, total) in rows {
+            totals.insert(tag_id, total.max(0) as u64);
+        }
+        Ok(totals)
+    }
 }
 
 #[async_trait]
@@ -394,27 +426,8 @@ impl RepoTagRepo for PostgresRepoTagRepo {
 
         let mut repo_total_by_tag: HashMap<String, u64> = HashMap::new();
         if !tag_rows.is_empty() {
-            let mut builder: QueryBuilder<Postgres> = QueryBuilder::new(
-                "SELECT m.tag_id, COUNT(DISTINCT m.repo_id) AS total \
-                 FROM repo_tag_map m WHERE m.tag_id IN (",
-            );
-            let mut first = true;
-            for row in &tag_rows {
-                if !first {
-                    builder.push(", ");
-                }
-                first = false;
-                builder.push_bind(row.id.clone());
-            }
-            builder.push(") GROUP BY m.tag_id");
-            let rows: Vec<(String, i64)> = builder
-                .build_query_as()
-                .fetch_all(&self.pool)
-                .await
-                .map_err(db_err)?;
-            for (tag_id, total) in rows {
-                repo_total_by_tag.insert(tag_id, total.max(0) as u64);
-            }
+            let tag_ids = tag_rows.iter().map(|row| row.id.clone()).collect::<Vec<_>>();
+            repo_total_by_tag = self.repo_totals_by_tag_ids(&tag_ids).await?;
         }
 
         let mut top_by_tag: HashMap<String, Vec<RepoTagTopRepo>> = HashMap::new();
@@ -519,6 +532,42 @@ impl RepoTagRepo for PostgresRepoTagRepo {
             })
             .collect();
         Ok(page.to_page(items, total as u64))
+    }
+
+    async fn count_repos_by_tags(
+        &self,
+        tags: &[Tag],
+    ) -> AppResult<HashMap<(String, String), u64>> {
+        if tags.is_empty() {
+            return Ok(HashMap::new());
+        }
+
+        let mut unique_pairs: Vec<(String, String)> = Vec::new();
+        let mut seen = HashSet::new();
+        let mut pair_by_id: HashMap<String, (String, String)> = HashMap::new();
+        for tag in tags {
+            let label = tag.label.as_str().to_string();
+            let value = tag.value.as_str().to_string();
+            if seen.insert((label.clone(), value.clone())) {
+                unique_pairs.push((label, value));
+            }
+        }
+        let tag_ids = unique_pairs
+            .iter()
+            .map(|(label, value)| {
+                let id = tag_id(label, value);
+                pair_by_id.insert(id.clone(), (label.clone(), value.clone()));
+                id
+            })
+            .collect::<Vec<_>>();
+        let by_tag_id = self.repo_totals_by_tag_ids(&tag_ids).await?;
+        let mut totals = HashMap::new();
+        for (tag_id, total) in by_tag_id {
+            if let Some((label, value)) = pair_by_id.remove(&tag_id) {
+                totals.insert((label, value), total);
+            }
+        }
+        Ok(totals)
     }
 
     async fn list_tag_facets_by_active_values(

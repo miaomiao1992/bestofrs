@@ -9,6 +9,7 @@ use super::tags::TagDto;
 pub struct SearchRepoDto {
     pub id: String,
     pub full_name: Option<String>,
+    pub description: Option<String>,
     pub github_repo_id: Option<i64>,
 }
 
@@ -17,6 +18,7 @@ impl From<Repo> for SearchRepoDto {
         Self {
             id: value.id.to_string(),
             full_name: value.full_name,
+            description: value.description,
             github_repo_id: value.github_repo_id,
         }
     }

@@ -1,0 +1,45 @@
+use dioxus::prelude::*;
+
+use crate::components::skeleton::Skeleton;
+use crate::components::{common::TypingText, icons::BORSFerrisIcon};
+use crate::root::Route;
+
+use super::{FuzzySearchCachedResult, FuzzySearchResultList};
+
+#[component]
+pub(super) fn FuzzySearchIdleFallback() -> Element {
+    rsx! {
+        div { class: "inset-0 p-8 w-full h-full text-grid-accent flex flex-col items-center justify-center gap-3",
+            BORSFerrisIcon { width:240.0 }
+            h3 { class: "text-base font-semibold text-secondary-2 text-center", "Hi, Ferris here!" }
+            div { class: "w-full max-w-md text-left text-sm text-secondary-5",
+                TypingText { text: "Type a keyword and I'll find matching repos and tags".to_string(), active: true }
+            }
+        }
+    }
+}
+
+#[derive(Props, Clone, PartialEq)]
+pub(super) struct FuzzySearchCachedFallbackProps {
+    pub cached: Option<FuzzySearchCachedResult>,
+    pub on_repo_select: Callback<Route>,
+    pub on_tag_select: Callback<(String, String)>,
+}
+
+#[component]
+pub(super) fn FuzzySearchCachedFallback(props: FuzzySearchCachedFallbackProps) -> Element {
+    if let Some(cached) = props.cached {
+        rsx! {
+            FuzzySearchResultList {
+                repos: cached.repos,
+                tags: cached.tags,
+                on_repo_select: props.on_repo_select,
+                on_tag_select: props.on_tag_select,
+            }
+        }
+    } else {
+        rsx! {
+            Skeleton { class: "skeleton w-full h-full min-h-[120px]" }
+        }
+    }
+}

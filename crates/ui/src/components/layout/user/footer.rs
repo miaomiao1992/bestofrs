@@ -14,7 +14,7 @@ pub fn Footer() -> Element {
             div { class: "pointer-events-none absolute inset-x-0 bottom-0 h-[460px] overflow-hidden -z-0",
                 IOCell {
                     loading_fallback: rsx! {
-                        div { class: "h-full w-full" }
+                        div { class: "h-full w-full hidden" }
                     },
                     GearMap {
                         count: 7,

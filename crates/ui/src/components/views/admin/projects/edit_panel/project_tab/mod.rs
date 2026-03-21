@@ -131,6 +131,8 @@ pub(super) fn ProjectTab(props: ProjectTabProps) -> Element {
             .map(|tag| TagDto {
                 label: tag.label,
                 value: tag.value,
+                description: tag.description,
+                repos_total: Some(tag.repos_total),
             })
             .collect::<Vec<_>>(),
         _ => Vec::new(),

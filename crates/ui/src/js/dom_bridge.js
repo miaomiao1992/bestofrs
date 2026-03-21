@@ -8,12 +8,23 @@ export async function blur_active_element() {
     activeElement.blur();
   }
 }
-
-export async function focus_element_by_id(id) {
-  const element = document.getElementById(id);
-  if (element && typeof element.focus === "function") {
-    element.focus();
+export async function mount_fuzzy_search_hotkey(trigger_id, drop) {
+  function fuzzySearchKeyHandler(event) {
+    const key = (event.key || "").toLowerCase();
+    if (key === "k" && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+      const trigger = document.getElementById(trigger_id);
+      if (trigger && typeof trigger.click === "function") {
+        trigger.click();
+      }
+    }
   }
+
+  window.addEventListener("keydown", fuzzySearchKeyHandler);
+
+  drop.then(() => {
+    window.removeEventListener("keydown", fuzzySearchKeyHandler);
+  });
 }
 
 export async function rewrite_markdown_links(root_id) {

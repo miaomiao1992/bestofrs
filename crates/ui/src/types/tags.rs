@@ -1,4 +1,4 @@
-use app::repo::{RepoTagFacet, RepoTagListItem, RepoTagTopRepo};
+use app::repo::{RepoSearchTagItem, RepoTagFacet, RepoTagListItem, RepoTagTopRepo};
 use domain::Tag;
 use serde::{Deserialize, Serialize};
 
@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 pub struct TagDto {
     pub label: String,
     pub value: String,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub repos_total: Option<u64>,
 }
 
 impl From<Tag> for TagDto {
@@ -13,6 +17,19 @@ impl From<Tag> for TagDto {
         Self {
             label: value.label.as_str().to_string(),
             value: value.value.as_str().to_string(),
+            description: value.description,
+            repos_total: None,
+        }
+    }
+}
+
+impl From<RepoSearchTagItem> for TagDto {
+    fn from(value: RepoSearchTagItem) -> Self {
+        Self {
+            label: value.label,
+            value: value.value,
+            description: value.description,
+            repos_total: Some(value.repos_total),
         }
     }
 }

@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use domain::{Repo, RepoId, Tag};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use crate::app_error::AppResult;
 
@@ -85,6 +86,10 @@ pub trait RepoTagRepo: Send + Sync {
     ) -> AppResult<Page<RepoId>>;
     async fn list_tags(&self, page: Pagination) -> AppResult<Page<Tag>>;
     async fn search_tags_by_key(&self, key: &str, page: Pagination) -> AppResult<Page<Tag>>;
+    async fn count_repos_by_tags(
+        &self,
+        tags: &[Tag],
+    ) -> AppResult<HashMap<(String, String), u64>>;
     async fn list_tags_with_meta(
         &self,
         page: Pagination,
