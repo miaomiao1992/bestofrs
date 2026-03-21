@@ -316,6 +316,50 @@ impl RepoQueryHandler {
         self.repo_tags.list_tags_with_meta(page, top_n).await
     }
 
+    pub async fn list_tags_with_meta_by_values(
+        &self,
+        values: Vec<String>,
+        top_n: u32,
+    ) -> AppResult<Vec<RepoTagListItem>> {
+        let mut normalized = Vec::new();
+        let mut dedup = HashSet::new();
+        for value in values {
+            let value = value.trim();
+            if value.is_empty() {
+                continue;
+            }
+            let value = value.to_string();
+            if dedup.insert(value.clone()) {
+                normalized.push(value);
+            }
+        }
+        if normalized.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let mut by_value = self
+            .repo_tags
+            .list_tags_with_meta_by_values(&normalized, top_n)
+            .await?
+            .into_iter()
+            .map(|item| (item.value.clone(), item))
+            .collect::<HashMap<_, _>>();
+
+        Ok(normalized
+            .into_iter()
+            .filter_map(|value| by_value.remove(&value))
+            .collect())
+    }
+
+    pub async fn get_tag_with_meta_by_value(
+        &self,
+        value: String,
+        top_n: u32,
+    ) -> AppResult<Option<RepoTagListItem>> {
+        let mut items = self.list_tags_with_meta_by_values(vec![value], top_n).await?;
+        Ok(items.pop())
+    }
+
     pub async fn search_by_key(&self, key: &str, page: Pagination) -> AppResult<RepoSearchResult> {
         let key = key.trim();
         if let Some(cache) = &self.cache {

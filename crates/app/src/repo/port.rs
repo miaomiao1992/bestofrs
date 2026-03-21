@@ -95,6 +95,11 @@ pub trait RepoTagRepo: Send + Sync {
         page: Pagination,
         top_n: u32,
     ) -> AppResult<Page<RepoTagListItem>>;
+    async fn list_tags_with_meta_by_values(
+        &self,
+        values: &[String],
+        top_n: u32,
+    ) -> AppResult<Vec<RepoTagListItem>>;
     async fn list_tag_facets_by_active_values(
         &self,
         active_values: &[String],

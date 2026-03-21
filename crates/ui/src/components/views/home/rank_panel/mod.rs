@@ -43,11 +43,17 @@ fn rank_range_query(range: TimeRange) -> &'static str {
 }
 
 #[derive(Clone, PartialEq, Eq)]
+pub(super) struct HomeRankTag {
+    pub(super) label: String,
+    pub(super) value: String,
+}
+
+#[derive(Clone, PartialEq, Eq)]
 struct HomeRankRepo {
     id: String,
     name: String,
     description: String,
-    tags: Vec<String>,
+    tags: Vec<HomeRankTag>,
     avatar_url: String,
     stars: i64,
     forks: i64,
@@ -82,7 +88,7 @@ pub(super) fn HomeRankPanel() -> Element {
     let mut time_range = use_signal(|| TimeRange::Daily);
 
     rsx! {
-        div { class: "bg-primary border border-2 border-x-4 border-primary-6 shadow-2xl rounded-[3.5rem] overflow-hidden flex flex-col lg:flex-row min-h-[600px] transition-colors duration-300 relative z-10",
+        div { class: "bg-primary border border-2 border-x-4 border-primary-6 shadow-2xl rounded-[3.5rem] flex flex-col lg:flex-row min-h-[600px] transition-colors duration-300 relative z-10",
             div { class: "w-full lg:w-[260px] flex flex-col bg-primary border-r border-primary-6 self-stretch p-4",
                 div { class: "p-4 mb-2 flex items-center gap-2",
                     RustDEVIcon {  width: 48.0, height: 48.0 }
@@ -177,10 +183,13 @@ pub(super) fn map_rank_repo(repo: RepoDto) -> HomeRankRepo {
             .tags
             .iter()
             .map(|tag| {
-                if tag.label.is_empty() {
-                    tag.value.clone()
-                } else {
-                    tag.label.clone()
+                HomeRankTag {
+                    label: if tag.label.is_empty() {
+                        tag.value.clone()
+                    } else {
+                        tag.label.clone()
+                    },
+                    value: tag.value.clone(),
                 }
             })
             .collect(),

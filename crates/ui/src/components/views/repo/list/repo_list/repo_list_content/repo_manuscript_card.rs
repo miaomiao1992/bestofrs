@@ -1,12 +1,14 @@
 use crate::components::common::RepoAvatar;
+use crate::components::common::TagContent;
 use crate::components::icons::{CircleDotIcon, GitForkIcon, GithubIcon, HouseIcon, StarIcon};
 use crate::components::ui::avatar::AvatarImageSize;
+use crate::components::ui::hover_card::{HoverCard, HoverCardContent, HoverCardTrigger};
 use crate::root::Route;
 use crate::types::repos::RepoDto;
 use dioxus::prelude::*;
 
 #[component]
-pub fn RepoManuscriptCard(repo: RepoDto, on_open: Option<EventHandler<String>>) -> Element {
+pub(super) fn RepoManuscriptCard(repo: RepoDto, on_open: Option<EventHandler<String>>) -> Element {
     let RepoDto {
         id,
         stars,
@@ -41,7 +43,7 @@ pub fn RepoManuscriptCard(repo: RepoDto, on_open: Option<EventHandler<String>>) 
     rsx! {
         article {
             id: "{anchor_id}",
-            class: "group relative flex min-h-[120px] cursor-pointer flex-col border border-primary-6 [box-shadow:4px_4px_0_0_color-mix(in_oklab,var(--primary-color-6)_70%,transparent)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-1 hover:[border-color:color-mix(in_oklab,var(--grid-accent)_78%,var(--secondary-color-2))] hover:[box-shadow:8px_8px_0_0_color-mix(in_oklab,var(--grid-accent)_72%,transparent)] md:flex-row",
+            class: "group relative z-0 flex min-h-[120px] cursor-pointer flex-col border border-primary-6 [box-shadow:4px_4px_0_0_color-mix(in_oklab,var(--primary-color-6)_70%,transparent)] transition-all duration-200 hover:z-20 hover:-translate-y-0.5 hover:bg-primary-1 hover:[border-color:color-mix(in_oklab,var(--grid-accent)_78%,var(--secondary-color-2))] hover:[box-shadow:8px_8px_0_0_color-mix(in_oklab,var(--grid-accent)_72%,transparent)] focus-within:z-20 md:flex-row",
             onclick: move |_| {
                 navigator.push(route.clone());
                 if let Some(on_open) = on_open.as_ref() {
@@ -67,22 +69,22 @@ pub fn RepoManuscriptCard(repo: RepoDto, on_open: Option<EventHandler<String>>) 
                         p { class: "mt-0.5 text-[10px] font-mono text-secondary-5", "@{owner}" }
                     }
                     div { class: "relative z-20 flex items-center gap-2",
+                        a {
+                            href: "{github_url}",
+                            class: "text-secondary-5 transition-colors hover:text-secondary-3",
+                            target: "_blank",
+                            onclick: move |evt| evt.stop_propagation(),
+                            GithubIcon { width: 14, height: 14 }
+                        }
+                        if let Some(homepage) = homepage.clone() {
                             a {
-                                href: "{github_url}",
+                                href: "{homepage}",
                                 class: "text-secondary-5 transition-colors hover:text-secondary-3",
                                 target: "_blank",
                                 onclick: move |evt| evt.stop_propagation(),
-                                GithubIcon { width: 14, height: 14 }
+                                HouseIcon { width: 14, height: 14 }
                             }
-                            if let Some(homepage) = homepage.clone() {
-                                a {
-                                    href: "{homepage}",
-                                    class: "text-secondary-5 transition-colors hover:text-secondary-3",
-                                    target: "_blank",
-                                    onclick: move |evt| evt.stop_propagation(),
-                                    HouseIcon { width: 14, height: 14 }
-                                }
-                            }
+                        }
                     }
                 }
             }
@@ -110,11 +112,38 @@ pub fn RepoManuscriptCard(repo: RepoDto, on_open: Option<EventHandler<String>>) 
                     "{description.clone().unwrap_or_else(|| \"No description\".to_string())}"
                 }
                 div { class: "flex flex-wrap justify-start gap-x-2 gap-y-2",
-                    for tag in tags.iter() {
-                        span { class: "border-b border-transparent pb-0.5 font-mono text-[10px] uppercase tracking-wider text-secondary-5 transition-colors hover:border-secondary-6 hover:text-secondary-6",
-                            "#{tag.label}"
+                    for tag in tags.clone().into_iter() {
+                        TagHoverCardTrigger {
+                            key: "{id}:{tag.value}",
+                            tag_label: tag.label,
+                            tag_value: tag.value,
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn TagHoverCardTrigger(tag_label: String, tag_value: String) -> Element {
+    rsx! {
+        HoverCard {
+            div {
+                onclick: move |evt| evt.stop_propagation(),
+                HoverCardTrigger {
+                    button {
+                        r#type: "button",
+                        class: "border-b border-transparent pb-0.5 font-mono text-[10px] uppercase tracking-wider text-secondary-5 transition-colors hover:border-secondary-6 hover:text-secondary-6",
+                        "#{tag_label}"
+                    }
+                }
+            }
+            HoverCardContent {
+                side: dioxus_primitives::ContentSide::Bottom,
+                div {
+                    onclick: move |evt| evt.stop_propagation(),
+                    TagContent { value: tag_value }
                 }
             }
         }

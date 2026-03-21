@@ -5,12 +5,14 @@ use app::repo::RepoListQuery;
 
 use crate::IO::repos::list_repos_with_query;
 
+mod repo_list_content;
+pub(super) mod skeleton;
+
 use super::{
     filter_range, sort_metric, FilterType, ListSummary, RepoListCachedPage, RepoListContext,
-    repo_list_content::RepoListContent, RepoListHeroType, SortType,
+    RepoListHeroType, SortType,
 };
-
-pub(super) mod skeleton;
+use repo_list_content::RepoListContent;
 
 #[component]
 pub(super) fn RepoListIO() -> Element {

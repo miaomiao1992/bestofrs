@@ -36,7 +36,7 @@ pub fn Home() -> Element {
                 ..Default::default()
             },
         }
-        div { class: "min-h-screen bg-primary flex flex-col items-center selection:bg-secondary-2 selection:text-primary relative transition-colors duration-300",
+        div { class: "min-h-screen bg-primary flex flex-col items-center relative transition-colors duration-300",
             div { class: "hero-block absolute top-0 left-1/2 -translate-x-1/2 w-screen h-[65vh] z-0 flex items-center transition-colors duration-300 overflow-visible",
                 div { class: "absolute inset-0 z-10 overflow-hidden bg-primary transition-colors duration-300",
                     div { class: "absolute inset-0 z-0",

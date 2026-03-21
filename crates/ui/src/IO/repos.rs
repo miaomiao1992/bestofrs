@@ -267,6 +267,38 @@ pub async fn list_tags_with_meta(
     Ok(tags_page.map(TagListItemDto::from))
 }
 
+#[post("/api/tags/list_by_values", state: State)]
+pub async fn list_tags_with_meta_by_values(
+    values: Vec<String>,
+    top_n: Option<u32>,
+) -> ServerFnResult<Vec<TagListItemDto>> {
+    let app_state = state.0;
+    let top_n = top_n.unwrap_or(5).max(1);
+    let items = app_state
+        .repo
+        .query
+        .list_tags_with_meta_by_values(values, top_n)
+        .await
+        .map_err(api_error)?;
+    Ok(items.into_iter().map(TagListItemDto::from).collect())
+}
+
+#[post("/api/tags/get_by_value", state: State)]
+pub async fn get_tag_with_meta_by_value(
+    value: String,
+    top_n: Option<u32>,
+) -> ServerFnResult<Option<TagListItemDto>> {
+    let app_state = state.0;
+    let top_n = top_n.unwrap_or(5).max(1);
+    let item = app_state
+        .repo
+        .query
+        .get_tag_with_meta_by_value(value, top_n)
+        .await
+        .map_err(api_error)?;
+    Ok(item.map(TagListItemDto::from))
+}
+
 #[post("/api/tags/search", state: State)]
 pub async fn search_tags(key: String, page: Pagination) -> ServerFnResult<Page<TagDto>> {
     let app_state = state.0;

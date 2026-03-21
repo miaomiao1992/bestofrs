@@ -264,7 +264,6 @@ pub(super) fn remove_tag_query(active_tags: &[String], remove: &str) -> Option<S
 }
 
 mod repo_list;
-mod repo_list_content;
 mod repo_list_handler;
 mod repo_list_tags;
 mod repo_meta;

@@ -4,8 +4,6 @@ pub use pagination::*;
 mod breadcrumb;
 pub use breadcrumb::*;
 
-mod repo_manuscript_card;
-pub use repo_manuscript_card::RepoManuscriptCard;
 mod repo_avatar;
 pub use repo_avatar::RepoAvatar;
 
@@ -32,3 +30,6 @@ pub use typing_text::TypingText;
 
 mod seo;
 pub use seo::{SEOContext, SEOData, SEOHead, SEOProp};
+
+mod tag_content;
+pub use tag_content::TagContent;

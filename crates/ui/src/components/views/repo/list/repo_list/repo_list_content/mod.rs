@@ -1,12 +1,15 @@
+mod repo_manuscript_card;
+
 use dioxus::prelude::*;
 
-use crate::components::common::{CommonPagination, RepoManuscriptCard};
+use crate::components::common::CommonPagination;
 
-use super::{
+use super::super::{
     repo_anchor_id_for_list, repo_list_memory_key, repo_list_route_from_ctx, RepoListContext,
     RepoListHeroType, RepoListMemory, REPO_LIST_MEMORY,
 };
 use crate::types::repos::RepoDto;
+use repo_manuscript_card::RepoManuscriptCard;
 
 #[component]
 pub(super) fn RepoListContent(

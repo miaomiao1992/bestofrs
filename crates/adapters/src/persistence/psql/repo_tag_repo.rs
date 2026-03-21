@@ -486,6 +486,94 @@ impl RepoTagRepo for PostgresRepoTagRepo {
         Ok(page.to_page(items, total as u64))
     }
 
+    async fn list_tags_with_meta_by_values(
+        &self,
+        values: &[String],
+        top_n: u32,
+    ) -> AppResult<Vec<RepoTagListItem>> {
+        if values.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let mut builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("SELECT id, label, value, description FROM tags WHERE value IN (");
+        let mut separated = builder.separated(", ");
+        for value in values {
+            separated.push_bind(value);
+        }
+        separated.push_unseparated(")");
+        builder.push(" AND NOT (LOWER(label) = LOWER(");
+        builder.push_bind(UNTAG_LABEL);
+        builder.push(") AND LOWER(value) = LOWER(");
+        builder.push_bind(UNTAG_VALUE);
+        builder.push(")) ORDER BY label, value");
+        let tag_rows: Vec<TagRow> = builder
+            .build_query_as()
+            .fetch_all(&self.pool)
+            .await
+            .map_err(db_err)?;
+
+        let mut repo_total_by_tag: HashMap<String, u64> = HashMap::new();
+        if !tag_rows.is_empty() {
+            let tag_ids = tag_rows.iter().map(|row| row.id.clone()).collect::<Vec<_>>();
+            repo_total_by_tag = self.repo_totals_by_tag_ids(&tag_ids).await?;
+        }
+
+        let mut top_by_tag: HashMap<String, Vec<RepoTagTopRepo>> = HashMap::new();
+        if !tag_rows.is_empty() && top_n > 0 {
+            let mut builder: QueryBuilder<Postgres> = QueryBuilder::new(
+                "WITH ranked AS (\
+                 SELECT m.tag_id, r.id AS repo_id, r.avatar_url, r.homepage_url, \
+                 ROW_NUMBER() OVER (PARTITION BY m.tag_id ORDER BY r.stars DESC, r.id ASC) AS rn \
+                 FROM repo_tag_map m \
+                 JOIN repos r ON r.id = m.repo_id \
+                 WHERE m.tag_id IN (",
+            );
+            let mut first = true;
+            for row in &tag_rows {
+                if !first {
+                    builder.push(", ");
+                }
+                first = false;
+                builder.push_bind(row.id.clone());
+            }
+            builder.push(
+                ") ) SELECT tag_id, repo_id, avatar_url, homepage_url FROM ranked WHERE rn <= ",
+            );
+            builder.push_bind(top_n as i64);
+            builder.push(" ORDER BY tag_id, rn");
+            let rows: Vec<TagTopRepoRow> = builder
+                .build_query_as()
+                .fetch_all(&self.pool)
+                .await
+                .map_err(db_err)?;
+            for row in rows {
+                top_by_tag
+                    .entry(row.tag_id)
+                    .or_default()
+                    .push(RepoTagTopRepo {
+                        avatar_urls: build_avatar_urls(
+                            &row.repo_id,
+                            row.avatar_url.as_deref(),
+                            row.homepage_url.as_deref(),
+                        ),
+                        repo_id: row.repo_id,
+                    });
+            }
+        }
+
+        Ok(tag_rows
+            .into_iter()
+            .map(|row| RepoTagListItem {
+                label: row.label,
+                value: row.value,
+                description: row.description,
+                repos_total: repo_total_by_tag.remove(&row.id).unwrap_or(0),
+                top_repos: top_by_tag.remove(&row.id).unwrap_or_default(),
+            })
+            .collect())
+    }
+
     async fn search_tags_by_key(&self, key: &str, page: Pagination) -> AppResult<Page<Tag>> {
         let key = format!("%{key}%");
         let limit = page.limit();

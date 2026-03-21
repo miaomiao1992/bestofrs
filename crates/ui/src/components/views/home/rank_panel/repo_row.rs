@@ -1,5 +1,7 @@
 use crate::components::common::RepoAvatar;
+use crate::components::common::TagContent;
 use crate::components::ui::avatar::AvatarImageSize;
+use crate::components::ui::hover_card::{HoverCard, HoverCardContent, HoverCardTrigger};
 use dioxus::prelude::*;
 
 use super::{
@@ -37,7 +39,7 @@ pub(super) fn HomeRankRepoRow(props: HomeRankRepoRowProps) -> Element {
     let tag_more_style =
         format!("color: color-mix(in oklab, {accent_color} 76%, var(--secondary-color-4));");
     let card_class =
-        "rank-card bg-primary border-l-4 border-y border-r border-primary-6 shadow-sm transition-all duration-300 flex items-center p-3 group relative overflow-hidden rounded-2xl h-[86px]";
+        "rank-card bg-primary border-l-4 border-y border-r border-primary-6 shadow-sm transition-all duration-300 flex items-center p-3 group relative rounded-2xl h-[86px]";
     let detail = rsx! {
         div { class: "{card_class}", style: "{card_style}",
             div { class: "rank-card-number w-10 flex-shrink-0 font-mono font-bold transition-colors text-xl", style: "{rank_no_style}",
@@ -63,10 +65,25 @@ pub(super) fn HomeRankRepoRow(props: HomeRankRepoRowProps) -> Element {
                 }
                 div { class: "mt-1.5 flex flex-wrap items-center gap-1 min-h-[18px]",
                     for tag in tag_items {
-                        span {
-                            class: "rank-card-tag inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wide text-secondary-4",
-                            style: "{tag_chip_style}",
-                            "{tag}"
+                        HoverCard {
+                            key: "{tag.value}",
+                            div {
+                                onclick: move |evt| evt.stop_propagation(),
+                                HoverCardTrigger {
+                                    span {
+                                        class: "rank-card-tag inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wide text-secondary-4",
+                                        style: "{tag_chip_style}",
+                                        "{tag.label}"
+                                    }
+                                }
+                            }
+                            HoverCardContent {
+                                side: dioxus_primitives::ContentSide::Bottom,
+                                div {
+                                    onclick: move |evt| evt.stop_propagation(),
+                                    TagContent { value: tag.value }
+                                }
+                            }
                         }
                     }
                     if more_tags > 0 {
