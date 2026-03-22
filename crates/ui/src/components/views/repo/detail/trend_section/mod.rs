@@ -70,7 +70,7 @@ fn normalize_metric(metric: Option<&str>) -> String {
 
 #[component]
 pub(crate) fn TrendSection(initial_metric: ReadSignal<Option<String>>) -> Element {
-    let metric = use_signal(move || normalize_metric(initial_metric().as_deref()));
+    let mut metric = use_signal(move || normalize_metric(initial_metric().as_deref()));
     let mut delta_timeframe = use_signal(|| "weekly".to_string());
     let mut snapshot_timeframe = use_signal(|| "monthly".to_string());
     let mut active_tab = use_signal(|| Some("delta".to_string()));
@@ -85,9 +85,32 @@ pub(crate) fn TrendSection(initial_metric: ReadSignal<Option<String>>) -> Elemen
 
     rsx! {
         section { class: "space-y-6",
+            div { class: "space-y-4",
+                h2 { class: "text-5xl leading-[0.8] font-black tracking-tighter text-secondary-2 uppercase md:text-7xl",
+                    "Trend"
+                    br {}
+                    span { class: "text-transparent [-webkit-text-stroke:2px_var(--primary-color-6)]", "Analysis" }
+                }
+                div { class: "mb-8 flex flex-wrap justify-center gap-2",
+                    for item in ["stars", "forks", "issues"] {
+                        button {
+                            key: "{item}",
+                            class: "px-4 py-2 text-xs font-mono font-bold tracking-widest uppercase hover:cursor-pointer",
+                            class: if metric() == item {
+                                "border border-secondary-2 bg-secondary-2 text-primary shadow-comic-sm"
+                            } else {
+                                "border border-primary-6 bg-primary text-secondary-4 hover:bg-primary-1"
+                            },
+                            onclick: move |_| metric.set(item.to_string()),
+                            "{item}"
+                        }
+                    }
+                }
+            }
+
             IOCell {
                 loading_fallback: rsx! { TrendSummarySkeleton {} },
-                TrendSummary {}
+                TrendSummary { metric }
             }
 
             Tabs {
