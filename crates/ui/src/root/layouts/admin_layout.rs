@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 
 use crate::components::avatar::{Avatar, AvatarFallback, AvatarImage, AvatarImageSize};
 use crate::components::common::CommonBreadcrumb;
-use crate::components::icons::{ArrowLeftIcon, BestOfRSIcon, ScrollTextIcon, TagsIcon};
+use crate::components::icons::{ArrowLeftIcon, BestOfRSIcon, SaveIcon, ScrollTextIcon, TagsIcon};
 use crate::components::separator::Separator;
 use crate::components::sidebar::{
     Sidebar, SidebarCollapsible, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
@@ -37,6 +37,7 @@ pub fn AdminLayout() -> Element {
     let is_projects = matches!(route, Route::AdminProjectsView {});
     let is_tags = matches!(route, Route::AdminTagsView {});
     let is_job = matches!(route, Route::AdminJobView {});
+    let is_backup = matches!(route, Route::AdminBackupView {});
 
     rsx! {
         document::Link {
@@ -119,6 +120,22 @@ pub fn AdminLayout() -> Element {
                                             ..attributes,
                                             ScrollTextIcon {}
                                             span { "Job" }
+                                        }
+                                    },
+                                }
+                            }
+                            SidebarMenuItem {
+                                SidebarMenuButton {
+                                    is_active: is_backup,
+                                    tooltip: rsx! { "Backup" },
+                                    r#as: move |attributes: Vec<Attribute>| rsx! {
+                                        button {
+                                            onclick: move |_| {
+                                                let _ = navigator.push(Route::AdminBackupView {});
+                                            },
+                                            ..attributes,
+                                            SaveIcon {}
+                                            span { "Backup" }
                                         }
                                     },
                                 }

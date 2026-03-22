@@ -89,6 +89,13 @@ fn build_crumbs(route: &Route) -> Vec<Crumb> {
                 to: None,
             },
         ],
+        Route::AdminBackupView {} => vec![
+            admin_crumb(),
+            Crumb {
+                label: "BACKUP".to_string(),
+                to: None,
+            },
+        ],
     }
 }
 
