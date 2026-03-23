@@ -51,7 +51,7 @@
   background: var(--primary-color-1);
   box-shadow: 6px 6px 0 0 color-mix(in oklab, var(--primary-color-6) 70%, transparent);
   color: var(--secondary-color-4);
-  font-family: Inter, sans-serif;
+  font-family: var(--font-sans, system-ui, sans-serif);
   gap: 16px;
   text-align: center;
   transform: translate(-50%, -50%);

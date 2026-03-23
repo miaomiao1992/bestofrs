@@ -51,7 +51,7 @@ fn HomeFaqItem(props: HomeFaqItemProps) -> Element {
                 span { class: "text-secondary-6 font-mono text-xs", "Q{props.index}." }
                 "{props.question}"
             }
-            p { class: "text-sm text-secondary-4 font-serif italic leading-relaxed",
+            p { class: "text-sm text-secondary-4 font-sans italic leading-relaxed",
                 "{props.answer}"
             }
         }

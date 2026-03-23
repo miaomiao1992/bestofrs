@@ -119,7 +119,7 @@
 .toast-title {
   margin-bottom: 4px;
   color: var(--secondary-color-4);
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;

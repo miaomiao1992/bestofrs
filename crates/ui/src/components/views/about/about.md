@@ -30,7 +30,7 @@ To track these states, our data pipeline works as follows:
 ## Community
 Without Open source, Best of RS won't be there, and it was born to help the Rust ecosystem thrive.
 Since the initial track list was curated from my personal viewsight, some great projects are bound to be missing!
-Please recommend awesome projects by [Create a Github issue here].
+Please recommend awesome projects by [Recommend One](https://github.com/zhiyanzhaijie/bestofrs/issues/new?template=recommend_repo.yaml).
 
 ## Grateful
 Best of RS was heavily inspired and supported by:
@@ -38,6 +38,6 @@ Best of RS was heavily inspired and supported by:
 1. [Best of JS](https://bestofjs.org) (Tracking workflow)
 2. [zed.dev](https://zed.dev/) (UI design)
 3. [Dioxus](https://dioxuslabs.com/) (Rust UI Powered)
+4. [iA-Fonts](https://github.com/iaolo/iA-Fonts) (iA Writer fonts, OFL-1.1)
 
 Special thanks to all the dependencies used in this project, and of course, [Ferris](https://rustacean.net/)!
-

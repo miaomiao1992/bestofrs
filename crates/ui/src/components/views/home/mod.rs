@@ -72,7 +72,7 @@ pub fn Home() -> Element {
                             br {}
                             span { class: "text-secondary-6 not-italic", "Rust" }
                         }
-                        h2 { class: "text-base sm:text-lg md:text-2xl text-secondary-4 font-serif italic leading-relaxed max-w-xl mb-6 sm:mb-8 md:mb-12",
+                        h2 { class: "text-base sm:text-lg md:text-2xl text-secondary-4 font-sans italic leading-relaxed max-w-xl mb-6 sm:mb-8 md:mb-12",
                             "The curated archive of Rust's finest. Tracking community health and project velocity, one snapshot at a time."
                         }
                     }

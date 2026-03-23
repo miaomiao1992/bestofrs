@@ -9,6 +9,7 @@
   --md-bg-table: color-mix(in oklab, var(--md-bg-soft) 72%, var(--md-bg-code));
 
   color: var(--md-fg);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
   font-size: 16px;
   line-height: 1.78;
   word-break: break-word;
@@ -151,7 +152,7 @@
 }
 
 .common-markdown code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
   font-size: 0.86em;
   background: var(--md-bg-soft);
   border: 1px solid var(--md-border);

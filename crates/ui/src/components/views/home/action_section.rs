@@ -16,7 +16,7 @@ pub(super) fn HomeActionSection() -> Element {
                         "Support "
                         span { class: "text-secondary-6 not-italic", "\"Best Of RS\"" }
                     }
-                    p { class: "text-sm text-secondary-4 font-serif italic leading-relaxed max-w-2xl",
+                    p { class: "text-sm text-secondary-4 font-sans italic leading-relaxed max-w-2xl",
                         "If Best of RS is useful to you, star the project or help us add more great repositories."
                     }
                 }

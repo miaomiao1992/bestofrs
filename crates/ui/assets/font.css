@@ -1,0 +1,54 @@
+@font-face {
+  font-family: "iA Writer Mono S";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/iAWriterMonoS-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "iA Writer Mono S";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/iAWriterMonoS-Italic.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "iA Writer Mono S";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/iAWriterMonoS-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "iA Writer Quattro S";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/iAWriterQuattroS-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "iA Writer Quattro S";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/iAWriterQuattroS-Italic.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "iA Writer Quattro S";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/iAWriterQuattroS-Bold.woff2") format("woff2");
+}
+
+:root,
+:host {
+  --font-serif: ui-serif, Georgia, Cambria, serif;
+  --font-mono: "iA Writer Mono S", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-sans: "iA Writer Quattro S", ui-sans-serif, system-ui, sans-serif;
+}

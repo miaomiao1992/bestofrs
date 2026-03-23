@@ -59,7 +59,7 @@ pub(super) fn HomeRankRepoRow(props: HomeRankRepoRowProps) -> Element {
                 h4 { class: "rank-card-title line-clamp-1 font-sans text-[11px] font-black uppercase tracking-tight text-secondary-2 transition-colors sm:text-xs md:text-sm",
                     "{props.repo.name}"
                 }
-                p { class: "mt-0 line-clamp-2 font-serif text-[10px] italic text-secondary-5 md:line-clamp-1 md:text-[11px]",
+                p { class: "mt-0 line-clamp-2 font-sans text-[10px] italic text-secondary-5 md:line-clamp-1 md:text-[11px]",
                     "{props.repo.description}"
                 }
                 div { class: "mt-1.5 hidden min-h-[18px] flex-wrap items-center gap-1 sm:flex",

@@ -47,7 +47,7 @@ pub(super) fn TagRow(
                     div { class: "h-0.5 flex-grow bg-grid-accent/30 transition-all duration-300 group-hover:h-1" }
                 }
                 p {
-                    class: "max-w-3xl border-l-2 border-grid-accent/30 py-1.5 pl-3 font-serif text-base italic leading-relaxed text-secondary/30 group-hover:text-secondary/50 md:border-l-4 md:py-2 md:pl-10 md:text-2xl",
+                    class: "max-w-3xl border-l-2 border-grid-accent/30 py-1.5 pl-3 font-sans text-base italic leading-relaxed text-secondary/30 group-hover:text-secondary/50 md:border-l-4 md:py-2 md:pl-10 md:text-2xl",
                     "{description}"
                 }
                 div { class: "pt-0",

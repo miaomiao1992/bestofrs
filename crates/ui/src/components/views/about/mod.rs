@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 
 use crate::components::common::{
     CommonMarkdown, GradientDirection, GridBackground, GridPadding, GridPattern,
-    GridSlashTransition, GridType, GridWrapper, SEOHead, SEOProp,
+    GridSlashTransition, GridWrapper, SEOHead, SEOProp,
 };
 
 const ABOUT_MD: &str = include_str!("./about.md");
@@ -20,19 +20,19 @@ pub fn About() -> Element {
                 ..Default::default()
             },
         }
+        document::Link { rel: "stylesheet", href: asset!("./style.css") }
         GridSlashTransition { }
         GridWrapper {
-            grid_type: GridType::Default,
-            padding: GridPadding::Lg,
-            is_dot_on: true,
+            bg_class: "opacity-76",
+            padding: GridPadding::None,
             background: GridBackground {
-                pattern: GridPattern::Grid,
-                gradient: GradientDirection::ToBottom,
+                pattern: GridPattern::Dot,
+                gradient: GradientDirection::ToTop,
             },
-            section { class: "min-h-screen",
+            section { class: "min-h-screen px-4 py-10 md:px-30 md:py-20",
                 CommonMarkdown {
                     src: ABOUT_MD.to_string(),
-                    class: Some("max-w-4xl p-6 md:p-10".to_string()),
+                    class: Some("about-markdown max-w-5xl".to_string()),
                 }
             }
         }

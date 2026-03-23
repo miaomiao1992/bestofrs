@@ -1,0 +1,173 @@
+.common-markdown.about-markdown {
+  --about-fg: color-mix(in oklab, var(--secondary-color-4) 76%, var(--primary-color-7));
+  --about-heading: color-mix(in oklab, var(--secondary-color-3) 68%, var(--primary-color-7));
+  --about-muted: color-mix(in oklab, var(--secondary-color-5) 62%, var(--primary-color-7));
+  --about-accent-soft: color-mix(in oklab, var(--grid-accent) 18%, var(--secondary-color-4));
+
+  max-width: 74ch;
+  color: var(--about-fg);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-size: 16px;
+  line-height: 1.78;
+}
+
+.common-markdown.about-markdown h1,
+.common-markdown.about-markdown h2,
+.common-markdown.about-markdown h3 {
+  color: var(--about-heading);
+  border-bottom: 0;
+  padding-bottom: 0;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  margin-top: 1.85rem;
+}
+
+.common-markdown.about-markdown h1 {
+  font-size: clamp(1.82rem, 3.6vw, 2.56rem);
+  font-weight: 620;
+  margin-bottom: 0.84rem;
+}
+
+.common-markdown.about-markdown h2 {
+  font-size: clamp(1.38rem, 2.2vw, 1.8rem);
+  font-weight: 590;
+  margin-bottom: 0.68rem;
+}
+
+.common-markdown.about-markdown h3 {
+  font-size: clamp(1.08rem, 1.7vw, 1.34rem);
+  font-weight: 570;
+  margin-bottom: 0.52rem;
+}
+
+.common-markdown.about-markdown p {
+  color: var(--about-fg);
+  margin-bottom: 1.08rem;
+}
+
+.common-markdown.about-markdown ul,
+.common-markdown.about-markdown ol {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  margin: 1.1rem 0 1.25rem;
+  padding: 0.25rem 0 0.25rem 1.5rem;
+}
+
+.common-markdown.about-markdown li {
+  color: var(--about-fg);
+}
+
+.common-markdown.about-markdown li+li {
+  margin-top: 0.5rem;
+}
+
+.common-markdown.about-markdown ul li::marker {
+  color: var(--about-muted);
+}
+
+.common-markdown.about-markdown ol {
+  list-style: none;
+  padding-left: 0;
+  counter-reset: about-ordered;
+}
+
+.common-markdown.about-markdown ol>li {
+  counter-increment: about-ordered;
+  position: relative;
+  padding-left: 2rem;
+}
+
+.common-markdown.about-markdown ol>li::before {
+  content: counter(about-ordered, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.06rem;
+  color: var(--about-muted);
+  font-size: 0.76em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+}
+
+.common-markdown.about-markdown blockquote {
+  margin: 1.35rem 0 1.45rem;
+  color: var(--about-accent-soft);
+  background: transparent;
+  border: 0;
+  border-radius: 0.8rem;
+  padding: 0.82rem 1rem;
+  font-style: italic;
+}
+
+.common-markdown.about-markdown blockquote> :last-child {
+  margin-bottom: 0;
+}
+
+.common-markdown.about-markdown pre {
+  border-radius: 0.9rem;
+  margin: 1.2rem 0;
+}
+
+@media (max-width: 767px) {
+  .common-markdown.about-markdown {
+    max-width: 100%;
+    font-size: 14px;
+    line-height: 1.66;
+  }
+
+  .common-markdown.about-markdown h1,
+  .common-markdown.about-markdown h2,
+  .common-markdown.about-markdown h3 {
+    margin-top: 1.45rem;
+  }
+
+  .common-markdown.about-markdown h1 {
+    font-size: 1.56rem;
+    margin-bottom: 0.62rem;
+  }
+
+  .common-markdown.about-markdown h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .common-markdown.about-markdown h3 {
+    font-size: 1.02rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .common-markdown.about-markdown p {
+    margin-bottom: 0.92rem;
+  }
+
+  .common-markdown.about-markdown ul,
+  .common-markdown.about-markdown ol {
+    margin: 0.88rem 0 1rem;
+    padding-left: 1.2rem;
+  }
+
+  .common-markdown.about-markdown li+li {
+    margin-top: 0.38rem;
+  }
+
+  .common-markdown.about-markdown ol>li {
+    padding-left: 1.62rem;
+  }
+
+  .common-markdown.about-markdown ol>li::before {
+    top: 0.08rem;
+    font-size: 0.72em;
+  }
+
+  .common-markdown.about-markdown pre {
+    margin: 0.92rem 0;
+    border-radius: 0.62rem;
+  }
+
+  .common-markdown.about-markdown blockquote {
+    margin: 1rem 0 1.08rem;
+    border-radius: 0.62rem;
+    padding: 0.66rem 0.78rem;
+  }
+}
