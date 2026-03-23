@@ -25,8 +25,9 @@ pub(super) fn RepoListHandler() -> Element {
                 " of "
                 span { class: "font-semibold text-grid-accent", "{(ctx.summary)().total}" }
             }
-            div { class: "flex items-center gap-4 w-full md:w-auto",
+            div { class: "grid w-full grid-cols-3 items-center gap-2 md:flex md:w-auto md:gap-4",
                 Select::<FilterType> {
+                    class: "select w-full min-w-0",
                     value: Some((ctx.filter_type)()),
                     placeholder: "filter",
                     on_value_change: move |next: Option<FilterType>| {
@@ -44,8 +45,9 @@ pub(super) fn RepoListHandler() -> Element {
                         }
                     },
                     SelectTrigger {
+                        class: "select-trigger w-full min-w-0 px-2 py-2 text-[10px] tracking-[0.08em] md:min-w-[9rem] md:px-4 md:py-3 md:text-xs md:tracking-[0.14em]",
                         aria_label: "Select filter",
-                        style: "min-width: 9rem;",
+                        style: "min-width: 0;",
                         SelectValue {}
                     }
                     SelectList { aria_label: "Filter options",
@@ -83,6 +85,7 @@ pub(super) fn RepoListHandler() -> Element {
                     }
                 }
                 Select::<u32> {
+                    class: "select w-full min-w-0",
                     value: Some((ctx.page_size)()),
                     placeholder: "page size",
                     on_value_change: move |v: Option<u32>| {
@@ -92,8 +95,9 @@ pub(super) fn RepoListHandler() -> Element {
                         }
                     },
                     SelectTrigger {
+                        class: "select-trigger w-full min-w-0 px-2 py-2 text-[10px] tracking-[0.08em] md:min-w-[7rem] md:px-4 md:py-3 md:text-xs md:tracking-[0.14em]",
                         aria_label: "Select page size",
-                        style: "min-width: 7rem;",
+                        style: "min-width: 0;",
                         SelectValue {}
                     }
                     SelectList { aria_label: "Page size options",
@@ -124,6 +128,7 @@ pub(super) fn RepoListHandler() -> Element {
                     }
                 }
                 Select::<SortType> {
+                    class: "select w-full min-w-0",
                     value: Some((ctx.sort_type)()),
                     placeholder: "sort",
                     on_value_change: move |next: Option<SortType>| {
@@ -144,7 +149,12 @@ pub(super) fn RepoListHandler() -> Element {
                             });
                         }
                     },
-                    SelectTrigger { aria_label: "Select sort", style: "min-width: 10rem;", SelectValue {} }
+                    SelectTrigger {
+                        class: "select-trigger w-full min-w-0 px-2 py-2 text-[10px] tracking-[0.08em] md:min-w-[10rem] md:px-4 md:py-3 md:text-xs md:tracking-[0.14em]",
+                        aria_label: "Select sort",
+                        style: "min-width: 0;",
+                        SelectValue {}
+                    }
                     SelectList { aria_label: "Sort options",
                         SelectGroup {
                             SelectGroupLabel { "Sort" }

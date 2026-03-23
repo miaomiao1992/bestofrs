@@ -1,3 +1,4 @@
+use super::super::super::{RepoListContext, SortType};
 use crate::components::common::RepoAvatar;
 use crate::components::common::TagContent;
 use crate::components::icons::{CircleDotIcon, GitForkIcon, GithubIcon, HouseIcon, StarIcon};
@@ -6,13 +7,10 @@ use crate::components::ui::hover_card::{HoverCard, HoverCardContent, HoverCardTr
 use crate::root::Route;
 use crate::types::repos::RepoDto;
 use dioxus::prelude::*;
-use super::super::super::{RepoListContext, SortType};
+use dioxus_primitives::ContentSide;
 
 #[component]
-pub(super) fn RepoManuscriptCard(
-    repo: RepoDto,
-    on_open: Option<EventHandler<String>>,
-) -> Element {
+pub(super) fn RepoManuscriptCard(repo: RepoDto, on_open: Option<EventHandler<String>>) -> Element {
     let ctx = use_context::<RepoListContext>();
     let metric = match (ctx.sort_type)() {
         SortType::Star => Some("star".to_string()),
@@ -63,65 +61,67 @@ pub(super) fn RepoManuscriptCard(
                     on_open.call(anchor_id.clone());
                 }
             },
-            div { class: "relative flex shrink-0 items-center gap-3 p-4 md:w-56",
-                div { class: "relative h-16 w-16 shrink-0",
-                    div { class: "absolute left-1 top-1 h-16 w-16 border border-primary-6 bg-screentone transition-all duration-200 group-hover:left-2 group-hover:top-2 group-hover:[border-color:color-mix(in_oklab,var(--grid-accent)_72%,var(--primary-color-6))] group-hover:[background-color:color-mix(in_oklab,var(--grid-accent)_18%,var(--primary-color))]" }
-                    div { class: "relative z-10 h-16 w-16 overflow-hidden border border-primary-6 bg-primary transition-all group-hover:border-focused-border",
-                        RepoAvatar {
-                            repo_id: id.clone(),
-                            avatar_urls: avatar_urls.clone(),
-                            size: AvatarImageSize::Large,
-                            class: "h-16 w-16 bg-transparent grayscale contrast-125 transition-all group-hover:grayscale-0",
-                            fallback_class: "flex h-16 w-16 items-center justify-center bg-primary-2 font-bold text-secondary-4",
+            div { class: "flex items-stretch justify-between gap-2 border-b border-primary-6 p-3 md:w-[23rem] md:shrink-0 md:gap-0 md:border-b-0 md:p-0",
+                div { class: "relative flex min-w-0 flex-1 items-center gap-3 p-0 md:w-56 md:flex-none md:p-4",
+                    div { class: "relative h-14 w-14 shrink-0 md:h-16 md:w-16",
+                        div { class: "absolute left-1 top-1 h-14 w-14 border border-primary-6 bg-screentone transition-all duration-200 group-hover:left-2 group-hover:top-2 group-hover:[border-color:color-mix(in_oklab,var(--grid-accent)_72%,var(--primary-color-6))] group-hover:[background-color:color-mix(in_oklab,var(--grid-accent)_18%,var(--primary-color))] md:h-16 md:w-16" }
+                        div { class: "relative z-10 h-14 w-14 overflow-hidden border border-primary-6 bg-primary transition-all group-hover:border-focused-border md:h-16 md:w-16",
+                            RepoAvatar {
+                                repo_id: id.clone(),
+                                avatar_urls: avatar_urls.clone(),
+                                size: AvatarImageSize::Large,
+                                class: "h-14 w-14 bg-transparent grayscale contrast-125 transition-all group-hover:grayscale-0 md:h-16 md:w-16",
+                                fallback_class: "flex h-14 w-14 items-center justify-center bg-primary-2 font-bold text-secondary-4 md:h-16 md:w-16",
+                            }
                         }
                     }
-                }
-                div { class: "flex min-w-0 flex-1 flex-col justify-center gap-2 pl-2",
-                    div {
-                        h3 { class: "break-words text-base font-bold leading-tight text-secondary-6 transition-colors group-hover:text-secondary-2", "{name}" }
-                        p { class: "mt-0.5 text-[10px] font-mono text-secondary-5", "@{owner}" }
-                    }
-                    div { class: "relative z-20 flex items-center gap-2",
-                        a {
-                            href: "{github_url}",
-                            class: "text-secondary-5 transition-colors hover:text-secondary-3",
-                            target: "_blank",
-                            onclick: move |evt| evt.stop_propagation(),
-                            GithubIcon { width: 14, height: 14 }
+                    div { class: "flex min-w-0 flex-1 flex-col justify-center gap-1.5 pl-1 md:gap-2 md:pl-2",
+                        div {
+                            h3 { class: "break-words text-sm font-bold leading-tight text-secondary-6 transition-colors group-hover:text-secondary-2 md:text-base", "{name}" }
+                            p { class: "mt-0.5 text-[10px] font-mono text-secondary-5", "@{owner}" }
                         }
-                        if let Some(homepage) = homepage.clone() {
+                        div { class: "relative z-20 flex items-center gap-2",
                             a {
-                                href: "{homepage}",
+                                href: "{github_url}",
                                 class: "text-secondary-5 transition-colors hover:text-secondary-3",
                                 target: "_blank",
                                 onclick: move |evt| evt.stop_propagation(),
-                                HouseIcon { width: 14, height: 14 }
+                                GithubIcon { width: 14, height: 14 }
+                            }
+                            if let Some(homepage) = homepage.clone() {
+                                a {
+                                    href: "{homepage}",
+                                    class: "text-secondary-5 transition-colors hover:text-secondary-3",
+                                    target: "_blank",
+                                    onclick: move |evt| evt.stop_propagation(),
+                                    HouseIcon { width: 14, height: 14 }
+                                }
                             }
                         }
                     }
                 }
-            }
-            div { class: "flex shrink-0 flex-row items-center justify-between gap-2 p-4 md:w-36 md:flex-col md:items-end",
-                div { class: "flex w-full flex-col items-end gap-1 text-xs font-mono text-secondary-5",
-                    div { class: "flex w-full items-center justify-end gap-2",
-                        span { class: "font-bold text-secondary-5 transition-colors group-hover:text-secondary-3", "{stars}" }
-                        StarIcon { width: 16, height: 16, class: "text-secondary-4 transition-colors group-hover:text-secondary-2" }
+                div { class: "flex w-[108px] shrink-0 flex-col items-end justify-between gap-2 pl-2 md:w-36 md:p-4",
+                    div { class: "flex w-full flex-col items-end gap-1 text-xs font-mono text-secondary-5",
+                        div { class: "flex w-full items-center justify-end gap-2",
+                            span { class: "font-bold text-secondary-5 transition-colors group-hover:text-secondary-3", "{stars}" }
+                            StarIcon { width: 16, height: 16, class: "text-secondary-4 transition-colors group-hover:text-secondary-2" }
+                        }
+                        div { class: "flex w-full items-center justify-end gap-2",
+                            span { class: "font-bold text-secondary-5 transition-colors group-hover:text-secondary-3", "{forks}" }
+                            GitForkIcon { width: 16, height: 16, class: "text-secondary-4 transition-colors group-hover:text-secondary-2" }
+                        }
+                        div { class: "flex w-full items-center justify-end gap-2",
+                            span { class: "font-bold text-secondary-5 transition-colors group-hover:text-secondary-3", "{open_issues}" }
+                            CircleDotIcon { width: 16, height: 16, class: "text-secondary-4 transition-colors group-hover:text-secondary-2" }
+                        }
                     }
-                    div { class: "flex w-full items-center justify-end gap-2",
-                        span { class: "font-bold text-secondary-5 transition-colors group-hover:text-secondary-3", "{forks}" }
-                        GitForkIcon { width: 16, height: 16, class: "text-secondary-4 transition-colors group-hover:text-secondary-2" }
-                    }
-                    div { class: "flex w-full items-center justify-end gap-2",
-                        span { class: "font-bold text-secondary-5 transition-colors group-hover:text-secondary-3", "{open_issues}" }
-                        CircleDotIcon { width: 16, height: 16, class: "text-secondary-4 transition-colors group-hover:text-secondary-2" }
+                    div { class: "mt-auto w-full border-t border-primary-5 pt-2 text-right text-[10px] font-mono text-secondary-5",
+                        "{owner}"
                     }
                 }
-                div { class: "mt-auto w-full border-t border-primary-5 pt-2 text-right text-[10px] font-mono text-secondary-5",
-                    "{owner}"
-                }
             }
-            div { class: "flex min-w-0 flex-grow flex-col justify-between p-4",
-                p { class: "mb-3 line-clamp-2 text-sm leading-relaxed text-secondary-4",
+            div { class: "flex min-w-0 flex-grow flex-col justify-between p-3 md:p-4",
+                p { class: "mb-2 line-clamp-2 text-xs leading-relaxed text-secondary-4 md:mb-3 md:text-sm",
                     "{description.clone().unwrap_or_else(|| \"No description\".to_string())}"
                 }
                 div { class: "flex flex-wrap justify-start gap-x-2 gap-y-2",
@@ -141,22 +141,29 @@ pub(super) fn RepoManuscriptCard(
 #[component]
 fn TagHoverCardTrigger(tag_label: String, tag_value: String) -> Element {
     rsx! {
-        HoverCard {
-            div {
-                onclick: move |evt| evt.stop_propagation(),
-                HoverCardTrigger {
-                    button {
-                        r#type: "button",
-                        class: "border-b border-transparent pb-0.5 font-mono text-[10px] uppercase tracking-wider text-secondary-5 transition-colors hover:border-secondary-6 hover:text-secondary-6",
-                        "#{tag_label}"
-                    }
-                }
+        div {
+            onclick: move |evt| evt.stop_propagation(),
+            button {
+                r#type: "button",
+                class: "border-b border-transparent pb-0.5 font-mono text-[10px] uppercase tracking-wider text-secondary-5 md:hidden",
+                "#{tag_label}"
             }
-            HoverCardContent {
-                side: dioxus_primitives::ContentSide::Bottom,
-                div {
-                    onclick: move |evt| evt.stop_propagation(),
-                    TagContent { value: tag_value }
+            div { class: "hidden md:block",
+                HoverCard {
+                    HoverCardTrigger {
+                        button {
+                            r#type: "button",
+                            class: "border-b border-transparent pb-0.5 font-mono text-[10px] uppercase tracking-wider text-secondary-5 transition-colors hover:border-secondary-6 hover:text-secondary-6",
+                            "#{tag_label}"
+                        }
+                    }
+                    HoverCardContent {
+                        side: ContentSide::Bottom,
+                        div {
+                            onclick: move |evt| evt.stop_propagation(),
+                            TagContent { value: tag_value }
+                        }
+                    }
                 }
             }
         }

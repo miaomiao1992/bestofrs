@@ -314,34 +314,32 @@ pub fn RepoList(
                 ..Default::default()
             },
         }
-        div { class: "min-h-screen grid grid-rows-[auto_auto_minmax(0,1fr)]",
-            GridWrapper {
-                grid_type: GridType::Default,
-                padding: GridPadding::Sm,
-                is_dot_on: true,
-                background: GridBackground {
-                    pattern: GridPattern::Grid,
-                    gradient: GradientDirection::ToBottom,
-                },
-                section { class: "relative bg-transparent",
-                    div { class: "relative z-10 flex flex-col gap-2",
-                        RepoMeta {}
-                        div { class: "flex flex-col gap-6 pt-6",
-                            IOCell {
-                                loading_fallback: rsx! { RepoListTagsSkeleton {} },
-                                RepoListTags {}
-                            }
-                            RepoListHandler {}
+        GridWrapper {
+            grid_type: GridType::Default,
+            padding: GridPadding::Sm,
+            is_dot_on: true,
+            background: GridBackground {
+                pattern: GridPattern::Grid,
+                gradient: GradientDirection::ToBottom,
+            },
+            section { class: "relative bg-transparent",
+                div { class: "relative z-10 flex flex-col gap-2",
+                    RepoMeta {}
+                    div { class: "flex flex-col gap-6 pt-6",
+                        IOCell {
+                            loading_fallback: rsx! { RepoListTagsSkeleton {} },
+                            RepoListTags {}
                         }
+                        RepoListHandler {}
                     }
                 }
             }
-            GridSlashTransition {}
-            GridWrapper { class: "min-h-0 h-full", padding: GridPadding::Sm,
-                IOCell {
-                    loading_fallback: rsx! { RepoListCachedFallback {} },
-                    RepoListIO {}
-                }
+        }
+        GridSlashTransition {}
+        GridWrapper { class: "min-h-screen h-full", padding: GridPadding::Sm,
+            IOCell {
+                loading_fallback: rsx! { RepoListCachedFallback {} },
+                RepoListIO {}
             }
         }
     }
