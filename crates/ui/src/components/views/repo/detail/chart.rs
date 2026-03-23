@@ -177,7 +177,7 @@ pub(super) fn ChartJsCanvas(
     });
 
     rsx! {
-        div { class: "border border-primary-6 bg-primary-1 p-3 h-80 {class}",
+        div { class: "h-72 w-full md:h-80 md:border md:border-primary-6 md:bg-primary-1 md:p-3 {class}",
             canvas { class: "w-full h-full", id: "{id()}" }
         }
     }

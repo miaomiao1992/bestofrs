@@ -34,19 +34,19 @@ pub(crate) fn TrendSummary(metric: Signal<String>) -> Element {
             ];
 
             rsx! {
-                div { class: "grid grid-cols-1 gap-6 md:grid-cols-3 w-[64%] mx-auto",
+                div { class: "mx-auto grid w-full grid-cols-3 gap-2 md:w-[64%] md:gap-6",
                     for (label, value) in summary_rows {
                         div {
                             key: "{label}",
-                            class: "relative flex min-h-[230px] items-center justify-center",
+                            class: "relative flex min-h-[120px] items-center justify-center md:min-h-[230px]",
                             RustGearIcon {
                                 width: 180.0,
-                                class: "absolute text-primary-6",
+                                class: "absolute text-primary-6 scale-[0.52] md:scale-100",
                             }
-                            div { class: "relative z-10 flex flex-col items-center gap-1 text-center",
-                                div { class: "mb-1 text-xs font-mono font-black tracking-[0.25em] text-secondary-5 uppercase", "{label}" }
+                            div { class: "relative z-10 flex flex-col items-center gap-0.5 text-center md:gap-1",
+                                div { class: "mb-0.5 text-[9px] font-mono font-black tracking-[0.14em] text-secondary-5 uppercase md:mb-1 md:text-xs md:tracking-[0.25em]", "{label}" }
                                 div {
-                                    class: "text-3xl font-black",
+                                    class: "text-lg font-black md:text-3xl",
                                     class: if value > 0 {
                                         "text-grid-accent"
                                     } else if value < 0 {

@@ -156,7 +156,7 @@ fn SnapshotChartContent(page: Page<SnapshotDto>) -> Element {
             if page.items.is_empty() {
                 div { class: "text-sm text-secondary-5", "No snapshot data" }
             } else {
-                div { class: "min-h-0 flex-1 border border-primary-6 bg-primary-1 p-3",
+                div { class: "min-h-0 flex-1 md:border md:border-primary-6 md:bg-primary-1 md:p-3",
                     ChartJsCanvas {
                         id,
                         config: chart_config,

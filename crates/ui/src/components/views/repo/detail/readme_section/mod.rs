@@ -14,7 +14,7 @@ pub(crate) fn ReadmeSection() -> Element {
     let readme_fut = use_server_future(move || get_repo_readme(owner(), name()))?;
 
     rsx! {
-        section { class: "space-y-4 border border-primary-6 bg-primary p-5 shadow-comic-sm",
+        section { class: "space-y-4",
             div { class: "space-y-1",
                 h2 { class: "text-5xl leading-[0.8] font-black tracking-tighter text-secondary-2 uppercase md:text-7xl",
                     "Read"
@@ -25,7 +25,7 @@ pub(crate) fn ReadmeSection() -> Element {
 
             match readme_fut() {
                 Some(Ok(Some(readme))) => rsx! {
-                    div { class: "rounded-md border border-primary-6 bg-primary-1 p-4",
+                    div { class: "bg-primary-1 md:rounded-md md:border md:border-primary-6 md:p-4",
                         CommonMarkdown {
                             src: readme.content,
                             link_base_url: readme.html_url,

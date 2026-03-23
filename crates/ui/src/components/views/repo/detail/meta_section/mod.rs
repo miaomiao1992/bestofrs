@@ -80,37 +80,37 @@ pub(crate) fn MetaSection() -> Element {
             },
         }
         section { class: "relative min-h-80 overflow-hidden",
-            div { class: "relative z-10 flex flex-col gap-10",
+            div { class: "relative z-10 flex flex-col gap-6 md:gap-10",
                 div { class: "grid grid-cols-1 lg:grid-cols-12",
                     GridWrapper {
                         class: "lg:col-span-9".to_string(),
                         padding: GridPadding::Sm,
                         is_dot_on: false,
-                        div { class: "flex min-w-0 flex-col gap-8",
-                            div { class: "flex flex-col items-start gap-8 md:flex-row",
-                                div { class: "relative h-32 w-32 shrink-0 md:h-40 md:w-40",
+                        div { class: "flex min-w-0 flex-col gap-5 md:gap-8",
+                            div { class: "flex flex-col items-start gap-5 md:flex-row md:gap-8",
+                                div { class: "relative h-24 w-24 shrink-0 self-center md:h-40 md:w-40 md:self-auto",
                                     div { class: "absolute left-2 top-2 h-full w-full border-2 border-primary-6 bg-screentone" }
-                                    div { class: "relative z-10 h-32 w-32 border-4 border-primary-6 bg-primary shadow-comic md:h-40 md:w-40",
+                                    div { class: "relative z-10 h-24 w-24 border-4 border-primary-6 bg-primary shadow-comic md:h-40 md:w-40",
                                         RepoAvatar {
                                             repo_id: format!("{owner}/{name}"),
                                             avatar_urls: avatar_candidates.clone(),
                                             size: AvatarImageSize::Custom,
-                                            class: "h-32 w-32 bg-transparent md:h-40 md:w-40",
-                                            fallback_class: "flex h-32 w-32 items-center justify-center bg-primary-2 text-3xl font-black text-secondary-3 md:h-40 md:w-40",
+                                            class: "h-24 w-24 bg-transparent md:h-40 md:w-40",
+                                            fallback_class: "flex h-24 w-24 items-center justify-center bg-primary-2 text-2xl font-black text-secondary-3 md:h-40 md:w-40 md:text-3xl",
                                         }
                                     }
                                 }
-                                div { class: "flex min-w-0 flex-1 flex-col gap-4",
+                                div { class: "flex min-w-0 flex-1 flex-col items-center gap-4 text-center md:items-start md:text-left",
                                     div {
-                                        h1 { class: "break-all text-5xl leading-none font-black tracking-tighter text-secondary-2 uppercase md:text-7xl",
+                                        h1 { class: "break-all text-3xl leading-none font-black tracking-tighter text-secondary-2 uppercase md:text-7xl",
                                             "{name}"
                                         }
-                                        div { class: "mt-2 font-mono text-xs font-bold tracking-widest text-grid-accent uppercase md:text-sm",
+                                        div { class: "mt-1.5 text-center font-mono text-[10px] font-bold tracking-widest text-grid-accent uppercase md:mt-2 md:text-left md:text-sm",
                                             "{owner}/{name}"
                                         }
                                     }
                                     if let Some(desc) = repo_data.as_ref().and_then(|r| r.description.clone()) {
-                                        p { class: "max-w-3xl font-mono text-sm leading-relaxed text-secondary-4 md:text-base",
+                                        p { class: "w-full max-w-3xl text-left font-mono text-xs leading-relaxed text-secondary-4 md:text-base",
                                             span { class: "mr-2 font-bold text-grid-accent",
                                                 ">"
                                             }
@@ -121,7 +121,7 @@ pub(crate) fn MetaSection() -> Element {
                             }
 
                             if let Some(date) = repo_data.as_ref().and_then(|r| r.last_fetched_at.clone()) {
-                                div { class: "font-mono text-[10px] tracking-widest text-secondary-6 uppercase",
+                                div { class: "font-mono text-[9px] tracking-widest text-secondary-6 uppercase md:text-[10px]",
                                     "last updated // {format_utc_ymd_hms(&date)}"
                                 }
                             }
@@ -136,15 +136,15 @@ pub(crate) fn MetaSection() -> Element {
                                         pattern: GridPattern::Slash,
                                         gradient: GradientDirection::None,
                                     },
-                                    div { class: "grid grid-cols-4 gap-2 px-2 py-2",
-                                        div { class: "flex h-14 cursor-default items-center justify-center gap-2 px-2 py-1",
+                                    div { class: "grid grid-cols-2 gap-2 px-2 py-2 md:grid-cols-4",
+                                        div { class: "flex h-12 cursor-default items-center justify-center gap-1.5 px-1 py-1 md:h-14 md:gap-2 md:px-2",
                                             StarIcon {
-                                                width: 36,
-                                                height: 36,
+                                                width: 24,
+                                                height: 24,
                                                 class: "text-grid-accent fill-current",
                                             }
                                             div { class: "flex min-w-0 flex-col leading-none",
-                                                span { class: "mb-0.5 text-xl font-black text-secondary-2",
+                                                span { class: "mb-0.5 text-base font-black text-secondary-2 md:text-xl",
                                                     "{repo.stars}"
                                                 }
                                                 span { class: "font-mono text-[9px] font-bold tracking-widest text-secondary-5 uppercase",
@@ -152,14 +152,14 @@ pub(crate) fn MetaSection() -> Element {
                                                 }
                                             }
                                         }
-                                        div { class: "flex h-14 cursor-default items-center justify-center gap-2 px-2 py-1",
+                                        div { class: "flex h-12 cursor-default items-center justify-center gap-1.5 px-1 py-1 md:h-14 md:gap-2 md:px-2",
                                             GitForkIcon {
-                                                width: 36,
-                                                height: 36,
+                                                width: 24,
+                                                height: 24,
                                                 class: "text-grid-accent",
                                             }
                                             div { class: "flex min-w-0 flex-col leading-none",
-                                                span { class: "mb-0.5 text-xl font-black text-secondary-2",
+                                                span { class: "mb-0.5 text-base font-black text-secondary-2 md:text-xl",
                                                     "{repo.forks}"
                                                 }
                                                 span { class: "font-mono text-[9px] font-bold tracking-widest text-secondary-5 uppercase",
@@ -167,14 +167,14 @@ pub(crate) fn MetaSection() -> Element {
                                                 }
                                             }
                                         }
-                                        div { class: "flex h-14 cursor-default items-center justify-center gap-2 px-2 py-1",
+                                        div { class: "flex h-12 cursor-default items-center justify-center gap-1.5 px-1 py-1 md:h-14 md:gap-2 md:px-2",
                                             CircleDotIcon {
-                                                width: 36,
-                                                height: 36,
+                                                width: 24,
+                                                height: 24,
                                                 class: "text-grid-accent",
                                             }
                                             div { class: "flex min-w-0 flex-col leading-none",
-                                                span { class: "mb-0.5 text-xl font-black text-secondary-2",
+                                                span { class: "mb-0.5 text-base font-black text-secondary-2 md:text-xl",
                                                     "{repo.open_issues}"
                                                 }
                                                 span { class: "font-mono text-[9px] font-bold tracking-widest text-secondary-5 uppercase",
@@ -182,14 +182,14 @@ pub(crate) fn MetaSection() -> Element {
                                                 }
                                             }
                                         }
-                                        div { class: "flex h-14 cursor-default items-center justify-center gap-2 px-2 py-1",
+                                        div { class: "flex h-12 cursor-default items-center justify-center gap-1.5 px-1 py-1 md:h-14 md:gap-2 md:px-2",
                                             UsersRoundIcon {
-                                                width: 36,
-                                                height: 36,
+                                                width: 24,
+                                                height: 24,
                                                 class: "text-grid-accent",
                                             }
                                             div { class: "flex min-w-0 flex-col leading-none",
-                                                span { class: "mb-0.5 text-xl font-black text-secondary-2",
+                                                span { class: "mb-0.5 text-base font-black text-secondary-2 md:text-xl",
                                                     "{repo.watchers}"
                                                 }
                                                 span { class: "font-mono text-[9px] font-bold tracking-widest text-secondary-5 uppercase",
@@ -208,21 +208,21 @@ pub(crate) fn MetaSection() -> Element {
                         class: "lg:col-span-3".to_string(),
                         padding: GridPadding::Sm,
                         line_type: GridLineType::None,
-                        div { class: "flex flex-col gap-6",
-                            div { class: "font-mono text-xs font-bold tracking-widest text-secondary-5 uppercase",
+                        div { class: "flex flex-col gap-4 md:gap-6",
+                            div { class: "font-mono text-[10px] font-bold tracking-widest text-secondary-5 uppercase md:text-xs",
                                 "Links & Tags"
                             }
-                            div { class: "flex flex-col gap-5",
+                            div { class: "flex flex-col gap-3 md:gap-5",
                                 a {
                                     href: "{github_url}",
                                     target: "_blank",
                                     rel: "noopener noreferrer",
-                                    class: "relative group block w-[calc(100%-10px)] mb-[10px]",
-                                    div { class: "absolute inset-0 rounded-full border-2 border-primary-6 bg-primary-1 translate-x-[10px] translate-y-[10px] transition-all duration-300 group-hover:border-focused-border" }
-                                    div { class: "relative flex w-full items-center justify-between gap-3 rounded-full border-4 border-secondary-2 bg-primary px-8 py-3 text-secondary-2 transition-all duration-300 ease-out group-hover:translate-x-[3.82px] group-hover:translate-y-[3.82px] group-hover:bg-secondary-2 group-hover:text-primary",
-                                        span { class: "flex items-center gap-3",
+                                    class: "relative group block w-[calc(100%-8px)] mb-[8px] md:w-[calc(100%-10px)] md:mb-[10px]",
+                                    div { class: "absolute inset-0 rounded-full border border-primary-6 bg-primary-1 translate-x-[8px] translate-y-[8px] transition-all duration-300 group-hover:border-focused-border md:border-2 md:translate-x-[10px] md:translate-y-[10px]" }
+                                    div { class: "relative flex w-full items-center justify-between gap-2 rounded-full border-2 border-secondary-2 bg-primary px-4 py-2 text-secondary-2 transition-all duration-300 ease-out group-hover:translate-x-[3.82px] group-hover:translate-y-[3.82px] group-hover:bg-secondary-2 group-hover:text-primary md:gap-3 md:border-4 md:px-8 md:py-3",
+                                        span { class: "flex items-center gap-2 md:gap-3",
                                             GithubIcon { width: 16, height: 16 }
-                                            span { class: "font-black font-sans text-sm uppercase tracking-[0.2em] italic",
+                                            span { class: "font-black font-sans text-xs uppercase tracking-[0.12em] italic md:text-sm md:tracking-[0.2em]",
                                                 "GitHub"
                                             }
                                         }
@@ -238,12 +238,12 @@ pub(crate) fn MetaSection() -> Element {
                                         href: "{url}",
                                         target: "_blank",
                                         rel: "noopener noreferrer",
-                                        class: "relative group block w-[calc(100%-10px)] mb-[10px]",
-                                        div { class: "absolute inset-0 rounded-full border-2 border-primary-6 bg-primary-1 translate-x-[10px] translate-y-[10px] transition-all duration-300 group-hover:border-focused-border" }
-                                        div { class: "relative flex w-full items-center justify-between gap-3 rounded-full border-4 border-secondary-2 bg-primary px-8 py-3 text-secondary-2 transition-all duration-300 ease-out group-hover:translate-x-[3.82px] group-hover:translate-y-[3.82px] group-hover:bg-secondary-2 group-hover:text-primary",
-                                            span { class: "flex items-center gap-3",
+                                        class: "relative group block w-[calc(100%-8px)] mb-[8px] md:w-[calc(100%-10px)] md:mb-[10px]",
+                                        div { class: "absolute inset-0 rounded-full border border-primary-6 bg-primary-1 translate-x-[8px] translate-y-[8px] transition-all duration-300 group-hover:border-focused-border md:border-2 md:translate-x-[10px] md:translate-y-[10px]" }
+                                        div { class: "relative flex w-full items-center justify-between gap-2 rounded-full border-2 border-secondary-2 bg-primary px-4 py-2 text-secondary-2 transition-all duration-300 ease-out group-hover:translate-x-[3.82px] group-hover:translate-y-[3.82px] group-hover:bg-secondary-2 group-hover:text-primary md:gap-3 md:border-4 md:px-8 md:py-3",
+                                            span { class: "flex items-center gap-2 md:gap-3",
                                                 HouseIcon { width: 16, height: 16 }
-                                                span { class: "font-black font-sans text-sm uppercase tracking-[0.2em] italic",
+                                                span { class: "font-black font-sans text-xs uppercase tracking-[0.12em] italic md:text-sm md:tracking-[0.2em]",
                                                     "Homepage"
                                                 }
                                             }
@@ -259,7 +259,7 @@ pub(crate) fn MetaSection() -> Element {
 
                             if let Some(repo) = repo_data.as_ref() {
                                 if !repo.tags.is_empty() {
-                                    div { class: "flex flex-wrap gap-2 pt-1",
+                                    div { class: "flex flex-wrap gap-1.5 pt-1 md:gap-2",
                                         for tag in repo.tags.iter() {
                                             Link {
                                                 key: "{tag.label}:{tag.value}",
@@ -270,7 +270,7 @@ pub(crate) fn MetaSection() -> Element {
                                                     page: None,
                                                     size: None,
                                                 },
-                                                class: "group inline-flex items-center border border-primary-6 bg-primary-1 px-2.5 py-1.5 font-mono text-xs font-bold tracking-wider text-secondary-2 lowercase transition-colors hover:bg-grid-accent hover:text-primary-1",
+                                                class: "group inline-flex items-center border border-primary-6 bg-primary-1 px-2 py-1 font-mono text-[10px] font-bold tracking-wider text-secondary-2 lowercase transition-colors hover:bg-grid-accent hover:text-primary-1 md:px-2.5 md:py-1.5 md:text-xs",
                                                 span { class: "mr-1.5 text-grid-accent transition-colors group-hover:text-primary-1",
                                                     "#"
                                                 }

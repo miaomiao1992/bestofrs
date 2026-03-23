@@ -2,17 +2,22 @@
   --md-fg: hsl(var(--secondary-4));
   --md-fg-muted: hsl(var(--secondary-5));
   --md-heading: hsl(var(--secondary-2));
-  --md-link: hsl(var(--secondary-6));
+  --md-link: #0969da;
   --md-border: hsl(var(--primary-6));
   --md-bg-soft: hsl(var(--primary-2));
-  --md-bg-code: hsl(var(--primary-1));
+  --md-bg-code: color-mix(in oklab, var(--primary-color-2) 88%, var(--primary-color-4));
   --md-bg-table: color-mix(in oklab, var(--md-bg-soft) 72%, var(--md-bg-code));
 
   color: var(--md-fg);
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: 16px;
+  line-height: 1.78;
   word-break: break-word;
   overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+:root[data-theme="dark"] .common-markdown {
+  --md-bg-code: color-mix(in oklab, var(--primary-color-4) 80%, #000);
 }
 
 .common-markdown> :first-child {
@@ -30,9 +35,9 @@
 .common-markdown h5,
 .common-markdown h6 {
   color: var(--md-heading);
-  line-height: 1.3;
+  line-height: 1.22;
   font-weight: 650;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   margin: 1.7em 0 0.65em;
 }
 
@@ -77,16 +82,28 @@
 }
 
 .common-markdown a {
-  color: #0969da;
+  color: var(--md-link);
   text-decoration: underline;
-  text-underline-offset: 0.12em;
-  text-decoration-thickness: 0.08em;
+  text-underline-offset: auto;
+  text-decoration-thickness: auto;
   border-bottom: 0;
-  transition: color 120ms ease;
+  transition: none;
 }
 
 .common-markdown a:hover {
-  color: #0550ae;
+  color: var(--md-link);
+}
+
+.common-markdown a:visited {
+  color: #8250df;
+}
+
+:root[data-theme="dark"] .common-markdown a {
+  color: #58a6ff;
+}
+
+:root[data-theme="dark"] .common-markdown a:visited {
+  color: #bc8cff;
 }
 
 .common-markdown ul,
@@ -165,9 +182,14 @@
   background: var(--md-bg-code);
   border: 1px solid var(--md-border);
   border-radius: 0.8rem;
-  padding: 0.9rem 1rem;
+  padding: 1rem 1.05rem;
   overflow: auto;
-  line-height: 1.6;
+  line-height: 1.58;
+}
+
+/* dioxus_markdown may emit inline background-color on <pre>; force theme background */
+.common-markdown pre[style] {
+  background-color: var(--md-bg-code) !important;
 }
 
 .common-markdown pre code {
@@ -201,7 +223,7 @@
 
 .common-markdown th,
 .common-markdown td {
-  padding: 0.62rem 0.8rem;
+  padding: 0.64rem 0.8rem;
   border: 1px solid var(--md-border);
   text-align: left;
   vertical-align: top;
@@ -318,6 +340,107 @@
   max-width: 100%;
   height: auto;
   vertical-align: middle;
+}
+
+@media (max-width: 767px) {
+  .common-markdown {
+    font-size: 14px;
+    line-height: 1.68;
+    text-wrap: auto;
+  }
+
+  .common-markdown h1,
+  .common-markdown h2,
+  .common-markdown h3,
+  .common-markdown h4,
+  .common-markdown h5,
+  .common-markdown h6 {
+    line-height: 1.26;
+    margin: 1.45em 0 0.58em;
+    letter-spacing: -0.01em;
+  }
+
+  .common-markdown h1 {
+    font-size: 1.4rem;
+    padding-bottom: 0.36rem;
+  }
+
+  .common-markdown h2 {
+    font-size: 1.22rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .common-markdown h3 {
+    font-size: 1.08rem;
+  }
+
+  .common-markdown h4 {
+    font-size: 1rem;
+  }
+
+  .common-markdown h5 {
+    font-size: 0.94rem;
+  }
+
+  .common-markdown h6 {
+    font-size: 0.88rem;
+  }
+
+  .common-markdown p,
+  .common-markdown ul,
+  .common-markdown ol,
+  .common-markdown dl,
+  .common-markdown blockquote,
+  .common-markdown pre,
+  .common-markdown table,
+  .common-markdown details {
+    margin: 0 0 0.86rem;
+  }
+
+  .common-markdown ul,
+  .common-markdown ol {
+    padding: 0.5rem 0.62rem 0.5rem 1.4rem;
+    border-radius: 0.58rem;
+  }
+
+  .common-markdown li + li {
+    margin-top: 0.28rem;
+  }
+
+  .common-markdown blockquote {
+    padding: 0.58rem 0.72rem;
+    border-radius: 0 0.52rem 0.52rem 0;
+  }
+
+  .common-markdown code {
+    font-size: 0.84em;
+    border-radius: 0.36rem;
+    padding: 0.1rem 0.28rem;
+  }
+
+  .common-markdown pre {
+    border-radius: 0.62rem;
+    padding: 0.72rem 0.72rem;
+  }
+
+  .common-markdown pre code {
+    font-size: 0.88em;
+  }
+
+  .common-markdown th,
+  .common-markdown td {
+    padding: 0.5rem 0.58rem;
+    font-size: 0.92em;
+  }
+
+  .common-markdown img {
+    margin: 0.72rem 0;
+    border-radius: 0.52rem;
+  }
+
+  .common-markdown > p:first-of-type:has(a img) img {
+    max-height: 1.04rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

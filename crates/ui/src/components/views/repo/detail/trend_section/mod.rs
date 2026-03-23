@@ -126,8 +126,8 @@ pub(crate) fn TrendSection(initial_metric: ReadSignal<Option<String>>) -> Elemen
                 TabContent {
                     value: "delta".to_string(),
                     index: 0usize,
-                    class: "flex h-[24rem] flex-col gap-4 border border-primary-6 bg-primary-1 p-4 shadow-comic-sm".to_string(),
-                    div { class: "flex justify-end",
+                    class: "flex h-[24rem] flex-col gap-4 border-0 bg-primary-1 p-0 shadow-none md:border md:border-primary-6 md:p-4 md:shadow-comic-sm".to_string(),
+                    div { class: "flex justify-end px-3 pt-3 md:px-0 md:pt-0",
                         div { class: "flex gap-2",
                             button {
                                 class: "px-3 py-1 text-[10px] font-mono font-bold tracking-widest uppercase hover:cursor-pointer",
@@ -163,8 +163,8 @@ pub(crate) fn TrendSection(initial_metric: ReadSignal<Option<String>>) -> Elemen
                 TabContent {
                     value: "snapshot".to_string(),
                     index: 1usize,
-                    class: "flex h-[24rem] flex-col gap-4 border border-primary-6 bg-primary-1 p-4 shadow-comic-sm".to_string(),
-                    div { class: "flex justify-end",
+                    class: "flex h-[24rem] flex-col gap-4 border-0 bg-primary-1 p-0 shadow-none md:border md:border-primary-6 md:p-4 md:shadow-comic-sm".to_string(),
+                    div { class: "flex justify-end px-3 pt-3 md:px-0 md:pt-0",
                         div { class: "flex gap-2",
                             button {
                                 class: "px-3 py-1 text-[10px] font-mono font-bold tracking-widest uppercase hover:cursor-pointer",
