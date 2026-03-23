@@ -107,7 +107,7 @@ pub fn TagList() -> Element {
                 }
             }
             FerrisFisherIcon {}
-            div { class: "absolute w-full mx-auto top-40", TagMetaHandler {} }
+            div { class: "absolute w-full mx-auto top-60 md:top-40", TagMetaHandler {} }
         }
         GridWrapper {
             class: "min-h-screen",
@@ -118,7 +118,7 @@ pub fn TagList() -> Element {
                 pattern: GridPattern::Dot,
                 gradient: GradientDirection::ToBottom,
             },
-            section { class: "relative overflow-visible min-h-screen grid grid-rows-[auto_minmax(0,1fr)] gap-6",
+            section { class: "relative overflow-visible min-h-screen mt-42 grid grid-rows-[auto_minmax(0,1fr)] gap-6",
                 IOCell {
                     loading_fallback: rsx! {
                         TagListCachedFallback {}
