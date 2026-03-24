@@ -1,4 +1,4 @@
-use crate::impls::auth::AdminAuth;
+use crate::impls::session::auth::AdminAuth;
 use crate::types::projects::{ImportProjectsResult, ProjectDto, ProjectImportItem};
 use dioxus::prelude::*;
 

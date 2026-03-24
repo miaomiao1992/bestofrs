@@ -1,4 +1,4 @@
-use crate::impls::auth::AdminAuth;
+use crate::impls::session::auth::AdminAuth;
 use crate::impls::error::api_error;
 use crate::impls::state::State;
 use crate::types::repos::{BulkUpdateRepoTagResultDto, RepoDto, RepoReadmeDto};

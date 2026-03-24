@@ -1,15 +1,15 @@
 use dioxus::prelude::*;
 
-use crate::impls::auth;
-use crate::impls::auth::{Auth, PendingOAuth};
 use crate::impls::error::api_error;
+use crate::impls::session::AppSession;
+use crate::impls::session::auth;
 use crate::impls::state::State;
 use crate::types::auth::MeDto;
 use dioxus_fullstack::response::{IntoResponse, Redirect, Response};
 
 use domain::Role;
 
-#[get("/api/auth/login/github", state: State, auth: Auth)]
+#[get("/api/auth/login/github", state: State, session: AppSession)]
 pub async fn github_login_start() -> ServerFnResult<Response> {
     let app_state = state.0;
 
@@ -20,23 +20,22 @@ pub async fn github_login_start() -> ServerFnResult<Response> {
         .await
         .map_err(api_error)?;
 
-    auth::set_pending_oauth(
-        &auth.session,
-        PendingOAuth {
+    auth::begin_oauth(
+        &session,
+        auth::PendingOAuth {
             state: start.state,
             code_verifier: start.code_verifier,
         },
     );
 
-    auth.session.set_store(true);
     Ok(Redirect::to(&start.authorization_url).into_response())
 }
 
-#[get("/api/auth/callback/github?code&state", ext_state: State, auth: Auth)]
+#[get("/api/auth/callback/github?code&state", ext_state: State, session: AppSession)]
 pub async fn github_login_callback(code: String, state: String) -> ServerFnResult<Response> {
     let app_state = ext_state.0;
 
-    let pending = auth::take_pending_oauth_checked(&auth.session, &state).map_err(|e| {
+    let pending = auth::consume_pending_oauth(&session, &state).map_err(|e| {
         ServerFnError::ServerError {
             code: 401,
             message: e.to_string(),
@@ -51,32 +50,16 @@ pub async fn github_login_callback(code: String, state: String) -> ServerFnResul
         .await
         .map_err(api_error)?;
 
-    let github_id: i64 =
-        auth_user
-            .user_id
-            .as_str()
-            .parse()
-            .map_err(|e| ServerFnError::ServerError {
-                code: 400,
-                message: format!("invalid github id: {e}"),
-                details: None,
-            })?;
-
-    auth.login_user(github_id);
-    auth.session.renew();
-
-    auth.session.set_store(true);
+    auth::login(&session, auth_user.into());
 
     Ok(Redirect::to("/").into_response())
 }
 
-#[get("/api/me", auth: Auth)]
+#[get("/api/me", session: AppSession)]
 pub async fn me() -> ServerFnResult<Option<MeDto>> {
-    if !auth.is_authenticated() {
+    let Some(user) = auth::current_user(&session) else {
         return Ok(None);
-    }
-
-    let user = auth.current_user.clone().unwrap_or_default();
+    };
 
     let role = match user.role {
         Role::Admin => "Admin",
@@ -92,8 +75,8 @@ pub async fn me() -> ServerFnResult<Option<MeDto>> {
     }))
 }
 
-#[post("/api/auth/logout", auth: Auth)]
+#[post("/api/auth/logout", session: AppSession)]
 pub async fn logout() -> ServerFnResult<()> {
-    auth.logout_user();
+    auth::logout(&session);
     Ok(())
 }

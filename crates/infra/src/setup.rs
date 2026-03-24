@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use adapters::persistence;
 use app::app_error::{AppError, AppResult};
-use app::auth::{AuthUserCache, OAuth2AuthorizationCodePkcePort, OAuth2ResourceOwnerPort};
+use app::auth::{OAuth2AuthorizationCodePkcePort, OAuth2ResourceOwnerPort};
 use app::prelude::{
     AuthCommandHandler, BackupCommandHandler, BackupQueryHandler, IngestDailySnapshots,
     ProjectCommandHandler, ProjectEventHandler, ProjectQueryHandler, RepoCommandHandler,
@@ -10,7 +10,7 @@ use app::prelude::{
 };
 
 use crate::config::Config as AppConfig;
-use adapters::auth::{ConfigRolePolicy, GithubOAuthAdapter, RedisAuthUserCache};
+use adapters::auth::{ConfigRolePolicy, GithubOAuthAdapter};
 use adapters::clock::SystemClock;
 use adapters::github::GithubClient;
 use redis_pool::SingleRedisPool;
@@ -43,7 +43,6 @@ pub struct AppContainer {
     pub config: AppConfig,
 
     pub redis_pool: SingleRedisPool,
-    pub user_cache: Arc<dyn AuthUserCache>,
 
     pub auth: AuthState,
     pub backup: BackupState,
@@ -109,11 +108,9 @@ pub async fn init_app_container() -> AppResult<AppContainer> {
     let redis_client =
         redis::Client::open(config.redis.url.as_str()).map_err(AppError::internal)?;
     let redis_pool = redis_pool::RedisPool::from(redis_client);
-    let user_cache: Arc<dyn AuthUserCache> =
-        Arc::new(RedisAuthUserCache::new(redis_pool.clone()));
 
     let auth = AuthState {
-        command: AuthCommandHandler::new(oauth, resource_owner, role_policy, user_cache.clone()),
+        command: AuthCommandHandler::new(oauth, resource_owner, role_policy),
     };
 
     let backup_port = runtime.backup;
@@ -140,7 +137,6 @@ pub async fn init_app_container() -> AppResult<AppContainer> {
     Ok(AppContainer {
         config,
         redis_pool,
-        user_cache,
         auth,
         backup,
         project,
