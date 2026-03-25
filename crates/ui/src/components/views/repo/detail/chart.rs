@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 
 use_js!("src/js/chart_bridge.js"::upsert_chart);
 
-pub(super) fn chart_dom_id(owner: &str, name: &str, suffix: &str) -> String {
+pub(super) fn chart_dom_id(owner: &str, name: &str, suffix: &str, duration: &str) -> String {
     let owner = owner
         .chars()
         .map(|ch| if ch.is_ascii_alphanumeric() { ch } else { '-' })
@@ -13,7 +13,7 @@ pub(super) fn chart_dom_id(owner: &str, name: &str, suffix: &str) -> String {
         .chars()
         .map(|ch| if ch.is_ascii_alphanumeric() { ch } else { '-' })
         .collect::<String>();
-    format!("repo-{owner}-{name}-{suffix}")
+    format!("repo-{owner}-{name}-{suffix}-{duration}")
 }
 
 pub(super) fn short_date_label(input: &str) -> String {
@@ -166,23 +166,22 @@ const CHART_JS_CDN: &str = "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/cha
 
 #[component]
 pub(super) fn ChartJsCanvas(
-    id: String,
+    id: ReadSignal<String>,
     config: ReadSignal<Value>,
-    active: bool,
     #[props(default = String::from(""))] class: String,
 ) -> Element {
-    use_effect(use_reactive!(|id, config, active| {
+    use_effect(move || {
+        let chart_id = id();
         let config_value = config();
-        let chart_id = id.clone();
         spawn(async move {
-            let _ = upsert_chart::<()>(chart_id, config_value, active).await;
+            let _ = upsert_chart::<()>(chart_id, config_value).await;
         });
-    }));
+    });
 
     rsx! {
         document::Script { src: CHART_JS_CDN, defer: true }
         div { class: "h-72 w-full md:h-80 md:border md:border-primary-6 md:bg-primary-1 md:p-3 {class}",
-            canvas { class: "w-full h-full", id }
+            canvas { key: id, class: "w-full h-full", id }
         }
     }
 }

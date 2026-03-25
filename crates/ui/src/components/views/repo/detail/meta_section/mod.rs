@@ -287,8 +287,6 @@ pub(crate) fn MetaSection() -> Element {
                                 }
                             }
                         }
-
-
                     }
                 }
             }

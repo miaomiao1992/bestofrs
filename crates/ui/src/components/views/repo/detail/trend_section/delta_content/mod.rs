@@ -35,24 +35,27 @@ pub(crate) fn DeltaContent() -> Element {
     let ctx = use_context::<RepoDetailContext>();
     let trend_ctx = use_context::<TrendContext>();
     let delta_timeframe = trend_ctx.delta_timeframe;
-    let selected: ReadSignal<Option<Result<Page<SnapshotDeltaDto>, ServerFnError>>> = use_server_future(
-        move || {
+    let selected: ReadSignal<Option<Result<Page<SnapshotDeltaDto>, ServerFnError>>> =
+        use_server_future(move || {
             let duration = if delta_timeframe() == "weekly" {
                 DurationRange::Weekly
             } else {
                 DurationRange::Monthly
             };
             list_repo_deltas_in_duration((ctx.owner)(), (ctx.name)(), duration)
-        },
-    )?
-    .into();
+        })?
+        .into();
     let page: ReadSignal<Option<Page<SnapshotDeltaDto>>> =
         use_memo(move || selected().and_then(|result| result.ok())).into();
 
     match selected() {
-        Some(Ok(_)) => rsx! { DeltaChartContent { page } },
+        Some(Ok(_)) => rsx! {
+            DeltaChartContent { page }
+        },
         Some(Err(e)) => Err(e)?,
-        None => rsx! { skeleton::DeltaContentSkeleton {} },
+        None => rsx! {
+            skeleton::DeltaContentSkeleton {}
+        },
     }
 }
 
@@ -61,9 +64,16 @@ fn DeltaChartContent(page: ReadSignal<Option<Page<SnapshotDeltaDto>>>) -> Elemen
     let ctx = use_context::<RepoDetailContext>();
     let trend_ctx = use_context::<TrendContext>();
     let metric = trend_ctx.metric;
-    let active_tab = trend_ctx.active_tab;
 
-    let id = chart_dom_id(&(ctx.owner)(), &(ctx.name)(), "delta");
+    let id: ReadSignal<String> = use_memo(move || {
+        chart_dom_id(
+            &(ctx.owner)(),
+            &(ctx.name)(),
+            "delta",
+            &(trend_ctx.delta_timeframe)(),
+        )
+    })
+    .into();
     let config: ReadSignal<serde_json::Value> = use_memo(move || {
         let current_metric = metric();
         page()
@@ -72,8 +82,6 @@ fn DeltaChartContent(page: ReadSignal<Option<Page<SnapshotDeltaDto>>>) -> Elemen
             .unwrap_or(serde_json::Value::Null)
     })
     .into();
-
-    let active = active_tab().as_deref() == Some("delta");
 
     let has_items = page()
         .as_ref()
@@ -86,11 +94,7 @@ fn DeltaChartContent(page: ReadSignal<Option<Page<SnapshotDeltaDto>>>) -> Elemen
                 div { class: "text-sm text-secondary-5", {t!("view_repo_detail_trend_no_delta_data")} }
             } else {
                 div { class: "min-h-0 flex-1 md:border md:border-primary-6 md:bg-primary-1 md:p-3",
-                    ChartJsCanvas {
-                        id,
-                        config,
-                        active,
-                    }
+                    ChartJsCanvas { id, config }
                 }
             }
         }

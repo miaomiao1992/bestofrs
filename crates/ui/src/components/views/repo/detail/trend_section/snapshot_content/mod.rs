@@ -119,9 +119,16 @@ fn SnapshotChartContent(page: ReadSignal<Option<Page<SnapshotDto>>>) -> Element 
     let trend_ctx = use_context::<TrendContext>();
     let metric = trend_ctx.metric;
     let snapshot_timeframe = trend_ctx.snapshot_timeframe;
-    let active_tab = trend_ctx.active_tab;
 
-    let id = chart_dom_id(&(ctx.owner)(), &(ctx.name)(), "trend");
+    let id: ReadSignal<String> = use_memo(move || {
+        chart_dom_id(
+            &(ctx.owner)(),
+            &(ctx.name)(),
+            "trend",
+            &(trend_ctx.snapshot_timeframe)(),
+        )
+    })
+    .into();
     let config: ReadSignal<serde_json::Value> = use_memo(move || {
         let current_metric = metric();
         let current_timeframe = snapshot_timeframe();
@@ -133,7 +140,6 @@ fn SnapshotChartContent(page: ReadSignal<Option<Page<SnapshotDto>>>) -> Element 
             .unwrap_or(serde_json::Value::Null)
     })
     .into();
-    let active = active_tab().as_deref() == Some("snapshot");
     let has_items = page()
         .as_ref()
         .map(|page| !page.items.is_empty())
@@ -148,7 +154,6 @@ fn SnapshotChartContent(page: ReadSignal<Option<Page<SnapshotDto>>>) -> Element 
                     ChartJsCanvas {
                         id,
                         config,
-                        active,
                     }
                 }
             }
