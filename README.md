@@ -5,7 +5,7 @@
 <h1 align="center">Best Of RS</h1>
 
 <p align="center">
-  A colorful Rust ecosystem tracker for discovering, comparing, and following open source project trends.
+  A <strong>colorful</strong> Rust ecosystem tracker for discovering, comparing, and following open source project trends.
 </p>
 
 <p align="center">
@@ -13,54 +13,65 @@
   <span> · </span>
   <a href="#architecture">Architecture</a>
   <span> · </span>
-  <a href="#contribute">Contribute</a>
+  <a href="#contribution">Contribution</a>
   <span> · </span>
   <a href="#license">License</a>
 </p>
 
 <p align="center">
-  <b>Languages:</b>
+  <b>README:</b>
   <a href="./README.md">English</a>
   <span> | </span>
-  <a href="./docs/readme/readme_zh-CN.md">简体中文</a>
+  <a href="./docs/readme/readme_zh-CN.md">中文</a>
 </p>
 
 ## About
 
 Best Of RS started from a simple goal: make Rust open source exploration less cold and more alive.
 
-Inspired by Best of JS and built fully in Rust, this project tracks curated Rust repositories on GitHub and turns daily changes into readable trends. It helps:
+Inspired by **Best of JS** and built fully in **Rust**, this project tracks curated Rust repositories on **GitHub** and turns daily changes into readable trends.
 
-- Users discover active, rising, and stable Rust projects.
-- Maintainers understand project momentum through continuous growth signals.
+It helps:
 
-The tool focuses on project metadata and community health, then visualizes the ecosystem pulse across daily, weekly, monthly, and yearly windows.
+- *Users* discover active, rising, and stable Rust projects.
+- *Maintainers* understand project momentum through continuous growth signals.
+
+The tool focuses on project `metadata` and `community health`, then visualizes the ecosystem pulse across `daily`, `weekly`, `monthly`, and `yearly` windows.
 
 ## Architecture
 
 Best Of RS is built around a curated project list, a daily tracking pipeline, and a trend-focused UI layer.
 
-See details: [docs/architecture/architecture.md](./docs/architecture/architecture.md)
+See details: [Architecture](./docs/architecture/architecture.md)
 
-## Contribute
+## Contribution
 
-Contributions are welcome, including project recommendations, bug reports, and documentation improvements.
+Contributions are welcome, including **`project recommendations`**, **`bug reports`**, and **`documentation improvements`**.
 
-See details: [docs/contribute/contribute.md](./docs/contribute/contribute.md)
+```text
+Preferred contribution topics:
+- project recommendations
+- bug reports
+- documentation improvements
+```
+
+See details: [Contribution Guide](./docs/contribute/contribute.md)
 
 ## License
-The source code of this repository is licensed under the MIT License (see `LICENSE`).
 
-However, the following are **not** licensed under the MIT License and are **reserved**:
+The source code of this repository is licensed under the **`MIT`** License (see [LICENSE](./LICENSE)).
 
-- Project name: "Best Of RS" (and any confusingly similar name)
+However, the following are **not** licensed under **`MIT`** and are **reserved**:
+
+- Project name: `Best Of RS` (and any confusingly similar name)
 - Logos, icons, and brand marks
 - Visual design assets (including but not limited to images, illustrations, and marketing materials)
 - Website look-and-feel / UI artwork (where applicable)
 
 You may not use the reserved items to imply endorsement, affiliation, or to create a confusingly similar service without prior written permission from the project owner.
 
-If you would like to use any of the reserved items, please contact: zhiyanzhaijie
+If you would like to use any of the reserved items, please contact: [Zhiyanzhaijie](https://github.com/zhiyanzhaijie)
 
-Font notice:
-- This website uses iA Writer fonts from [iA-Fonts](https://github.com/iaolo/iA-Fonts), licensed under SIL Open Font License 1.1 (OFL-1.1).
+### Notice
+
+- This website uses **iA Writer** fonts from [iA-Fonts](https://github.com/iaolo/iA-Fonts), licensed under **SIL Open Font License 1.1 (`OFL-1.1`)**.
