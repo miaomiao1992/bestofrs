@@ -3,14 +3,13 @@ pub(crate) mod skeleton;
 use dioxus::prelude::*;
 
 use crate::components::button::ButtonVariant;
-use crate::components::icons::{TrashIcon, WrenchIcon};
+use crate::components::icons::{GithubIcon, TrashIcon, WrenchIcon};
 use crate::components::ui::alert_dialog::{
     AlertDialogAction, AlertDialogActions, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogRoot, AlertDialogTitle,
 };
 use app::prelude::Pagination;
 
-use crate::components::common::CommonPagination;
 use crate::components::ui::button::Button;
 use crate::types::projects::ProjectDto;
 use crate::IO::projects::{list_projects, remove_project, search_projects};
@@ -27,26 +26,29 @@ pub(super) struct ProjectTableProps {
 pub(super) fn ProjectTable(props: ProjectTableProps) -> Element {
     let mut refresh = use_context::<ProjectsContext>().refresh;
     let search_key = use_context::<ProjectsContext>().search_key;
-    let mut page = use_signal(|| 1u32);
+    let mut table_pagination = use_context::<ProjectsContext>().table_pagination;
     let mut last_search_key = use_signal(String::new);
     let mut remove_pending = use_signal(|| false);
     let mut table_message = use_signal(|| Option::<String>::None);
     let mut delete_confirm_open = use_signal(|| false);
     let mut delete_target_repo_id = use_signal(|| Option::<String>::None);
-    let page_size = 20u32;
+    let mut cached_items = use_signal(Vec::<ProjectDto>::new);
+    let mut has_loaded_once = use_signal(|| false);
 
     use_effect(move || {
         let key = search_key();
         if last_search_key() != key {
             last_search_key.set(key);
-            page.set(1);
+            table_pagination.with_mut(|p| p.current_page = 1);
         }
     });
 
     let projects_page = use_server_future(move || {
         let _ = refresh();
         let key = search_key().trim().to_string();
-        let current_page = page().max(1);
+        let pagination_state = table_pagination();
+        let page_size = pagination_state.page_size;
+        let current_page = pagination_state.current_page.max(1);
         let pagination = Pagination {
             limit: Some(page_size),
             offset: Some(page_size.saturating_mul(current_page.saturating_sub(1))),
@@ -61,27 +63,29 @@ pub(super) fn ProjectTable(props: ProjectTableProps) -> Element {
     })?;
 
     let page_data = projects_page();
+    if let Some(Ok(page)) = page_data.as_ref() {
+        if cached_items() != page.items {
+            cached_items.set(page.items.clone());
+        }
+        has_loaded_once.set(true);
+        let next_total_pages = page.meta.total_pages;
+        let next_total_items = page.meta.total;
+        let current = table_pagination();
+        if current.total_pages != next_total_pages || current.total_items != next_total_items {
+            table_pagination.with_mut(|p| {
+                p.total_pages = next_total_pages;
+                p.total_items = next_total_items;
+            });
+        }
+    }
+    let total_items = table_pagination().total_items;
     let search_on = !search_key().trim().is_empty();
-    let total_pages = match page_data.as_ref() {
-        Some(Ok(p)) => p.meta.total_pages,
-        _ => 0,
-    };
-    let total_items = match page_data.as_ref() {
-        Some(Ok(p)) => p.meta.total,
-        _ => 0,
+    let display_items = match page_data.as_ref() {
+        Some(Ok(page)) => page.items.clone(),
+        _ => cached_items(),
     };
 
     rsx! {
-        if total_pages > 1 {
-            div { class: "flex justify-center mb-10",
-                CommonPagination {
-                    current_page: page(),
-                    total_pages,
-                    on_page_change: move |p| page.set(p),
-                }
-            }
-        }
-
         div { class: "overflow-auto rounded-md border border-primary-6 bg-primary-1",
 
             div { class: "text-xs text-secondary-5", "{total_items} items" }
@@ -101,14 +105,14 @@ pub(super) fn ProjectTable(props: ProjectTableProps) -> Element {
                         Some(Err(err)) => rsx! {
                             tr { td { class: "px-3 py-6 text-center text-primary-error", colspan: if props.panel_open { "2" } else { "4" }, "{err}" } }
                         },
-                        Some(Ok(p)) => {
-                            if p.items.is_empty() {
+                        Some(Ok(_)) => {
+                            if display_items.is_empty() {
                                 rsx! {
                                     tr { td { class: "px-3 py-6 text-center text-secondary-5", colspan: if props.panel_open { "2" } else { "4" }, if search_on { "无搜索结果" } else { "暂无数据" } } }
                                 }
                             } else {
                                 rsx! {
-                                    for item in p.items {
+                                    for item in display_items.clone() {
                                         tr { key: "{item.id}", class: "border-b border-primary-6 last:border-b-0",
                                             td { class: "px-3 py-2", "{item.name}" }
                                             if !props.panel_open {
@@ -117,6 +121,13 @@ pub(super) fn ProjectTable(props: ProjectTableProps) -> Element {
                                             }
                                             td { class: "px-3 py-2",
                                                 div { class: "flex justify-end gap-2",
+                                                    a {
+                                                        class: "button rounded-md border border-primary-6 bg-primary p-2 text-xs hover:bg-primary-3",
+                                                        href: "https://github.com/{item.repo_id}",
+                                                        target: "_blank",
+                                                        rel: "noopener noreferrer",
+                                                        GithubIcon { width: 14, height: 14 }
+                                                    }
                                                     Button {
                                                         variant: ButtonVariant::Secondary,
                                                         class: "button rounded-md border border-primary-6 bg-primary p-2 text-xs hover:bg-primary-3 disabled:opacity-50",
@@ -150,7 +161,57 @@ pub(super) fn ProjectTable(props: ProjectTableProps) -> Element {
                             }
                         }
                         None => rsx! {
-                            tr { td { class: "px-3 py-6 text-center text-secondary-5", colspan: if props.panel_open { "2" } else { "4" }, "Loading..." } }
+                            if !has_loaded_once() {
+                                tr { td { class: "px-3 py-6 text-center text-secondary-5", colspan: if props.panel_open { "2" } else { "4" }, "Loading..." } }
+                            } else if display_items.is_empty() {
+                                tr { td { class: "px-3 py-6 text-center text-secondary-5", colspan: if props.panel_open { "2" } else { "4" }, if search_on { "无搜索结果" } else { "暂无数据" } } }
+                            } else {
+                                for item in display_items.clone() {
+                                    tr { key: "{item.id}", class: "border-b border-primary-6 last:border-b-0",
+                                        td { class: "px-3 py-2", "{item.name}" }
+                                        if !props.panel_open {
+                                            td { class: "px-3 py-2 font-mono text-xs text-secondary-5", "{item.repo_id}" }
+                                            td { class: "px-3 py-2 text-secondary-5", "{item.slug}" }
+                                        }
+                                        td { class: "px-3 py-2",
+                                            div { class: "flex justify-end gap-2",
+                                                a {
+                                                    class: "button rounded-md border border-primary-6 bg-primary p-2 text-xs hover:bg-primary-3",
+                                                    href: "https://github.com/{item.repo_id}",
+                                                    target: "_blank",
+                                                    rel: "noopener noreferrer",
+                                                    GithubIcon { width: 14, height: 14 }
+                                                }
+                                                Button {
+                                                    variant: ButtonVariant::Secondary,
+                                                    class: "button rounded-md border border-primary-6 bg-primary p-2 text-xs hover:bg-primary-3 disabled:opacity-50",
+                                                    disabled: remove_pending(),
+                                                    onclick: {
+                                                        let project = item.clone();
+                                                        move |_: MouseEvent| props.on_edit.call(project.clone())
+                                                    },
+                                                    WrenchIcon { width: 14, height: 14 }
+                                                }
+                                                if !props.panel_open {
+                                                    Button {
+                                                        variant: ButtonVariant::Destructive,
+                                                        class: "button rounded-md border border-primary-6 bg-primary p-2 text-xs text-primary-error hover:bg-primary-3 disabled:opacity-50",
+                                                        disabled: remove_pending(),
+                                                        onclick: {
+                                                            let repo_id = item.repo_id.clone();
+                                                            move |_: MouseEvent| {
+                                                                delete_target_repo_id.set(Some(repo_id.clone()));
+                                                                delete_confirm_open.set(true);
+                                                            }
+                                                        },
+                                                        TrashIcon { width: 14, height: 14 }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         },
                     }
                 }

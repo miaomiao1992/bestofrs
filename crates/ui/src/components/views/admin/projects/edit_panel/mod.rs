@@ -8,7 +8,7 @@ use crate::components::icons::XIcon;
 use crate::components::tabs::{TabContent, TabList, TabTrigger, Tabs};
 use crate::components::ui::button::{Button, ButtonVariant};
 
-use super::context::ProjectPanelMode;
+use super::context::{ProjectPanelMode, ProjectsContext};
 use project_tab::skeleton::ProjectTabSkeleton;
 use project_tab::ProjectTab;
 use repo_tab::skeleton::RepoTabSkeleton;
@@ -22,16 +22,10 @@ pub(super) struct EditPanelProps {
 
 #[component]
 pub(super) fn EditPanel(props: EditPanelProps) -> Element {
-    let mut panel_tab = use_signal(|| Some("project".to_string()));
+    let mut panel_tab = use_context::<ProjectsContext>().edit_panel_tab;
     let panel_tab_read: ReadSignal<Option<String>> = panel_tab.into();
-    let mut mode_snapshot = use_signal(|| Option::<ProjectPanelMode>::None);
     let mut project_tab_busy = use_signal(|| false);
     let mut repo_tab_busy = use_signal(|| false);
-
-    if mode_snapshot() != Some(props.mode.clone()) {
-        mode_snapshot.set(Some(props.mode.clone()));
-        panel_tab.set(Some("project".to_string()));
-    }
 
     rsx! {
         div { class: "min-w-0 flex-1 space-y-3",
